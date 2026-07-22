@@ -1,0 +1,23 @@
+{
+  "modelo": "XGBoost",
+  "n_registros_entrenamiento": 100000,
+  "features_num": [
+    "consumo_kwh",
+    "uso_horario_pico",
+    "cantidad_equipos",
+    "horas_alto_consumo"
+  ],
+  "features_cat": [
+    "tipo_inmueble"
+  ],
+  "categorias": [
+    "Eficiente",
+    "Moderado",
+    "Ineficiente"
+  ],
+  "metricas_test": {
+    "accuracy": 0.74195,
+    "f1_macro": 0.7457775036703339
+  },
+  "tarifa_referencia_usd_kwh": 0.75
+}
