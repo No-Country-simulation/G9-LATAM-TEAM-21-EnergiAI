@@ -2,7 +2,6 @@ package com.hackathon.energia.controller;
 
 import com.hackathon.energia.dto.AnalisisResponse;
 import com.hackathon.energia.dto.ConsumoRequest;
-import com.hackathon.energia.service.AnalisisEnergeticoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
