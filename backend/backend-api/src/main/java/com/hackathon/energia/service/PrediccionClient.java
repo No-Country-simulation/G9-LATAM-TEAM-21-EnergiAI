@@ -1,7 +1,6 @@
 package com.hackathon.energia.service;
 
 import com.hackathon.energia.dto.ConsumoRequest;
-import com.hackathon.energia.dto.PrediccionInterna;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
