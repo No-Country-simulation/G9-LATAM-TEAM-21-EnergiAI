@@ -1,10 +1,11 @@
 package com.hackathon.energia.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
@@ -16,7 +17,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "analisis_energetico")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -43,7 +45,8 @@ public class AnalisisEnergetico {
     private Integer horasAltoConsumo;
 
     @Column(name = "categoria")
-    private String categoria;
+    @Enumerated(EnumType.STRING)
+    private CategoriaEnergetica categoria;
 
     @Column(name = "probabilidad")
     private Double probabilidad;
