@@ -8,6 +8,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +26,9 @@ public class IaModelCliente {
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            return "Peticion armada y lista para enviar";
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            return response.body();
         } catch (Exception e){
             throw new RuntimeException("Error al preparar la peticion hacia la IA)",e);
         }
