@@ -1,6 +1,7 @@
 package com.hackathon.energia.client;
 
 import com.hackathon.energia.dto.DatosRegistroAnalisis;
+import com.hackathon.energia.dto.DatosRespuestaAnalisis;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
@@ -16,7 +17,7 @@ public class IaModelCliente {
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper;
 
-    public String obtenerPrediccion(DatosRegistroAnalisis datos) {
+    public DatosRespuestaAnalisis obtenerPrediccion(DatosRegistroAnalisis datos) {
         try {
             String jsonBody = objectMapper.writeValueAsString(datos);
 
@@ -28,7 +29,9 @@ public class IaModelCliente {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            return response.body();
+            String json = response.body();
+            return objectMapper.readValue(json, DatosRespuestaAnalisis.class);
+
         } catch (Exception e){
             throw new RuntimeException("Error al preparar la peticion hacia la IA)",e);
         }
