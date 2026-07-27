@@ -1,0 +1,18 @@
+# IMPORTANTE: estas versiones están fijadas EXACTAS a las que se usaron
+# para entrenar y serializar el modelo (joblib .pkl). scikit-learn y
+# xgboost cambian su formato interno entre versiones mayores/menores;
+# instalar una versión distinta puede romper la carga del modelo con
+# errores como "'super' object has no attribute '__sklearn_tags__'".
+# Si necesitas cambiar estas versiones, hay que reentrenar el notebook
+# y volver a serializar el modelo con esas mismas versiones.
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+pydantic==2.13.4
+pandas==3.0.2
+numpy==2.4.4
+scikit-learn==1.8.0
+xgboost==3.2.0
+joblib==1.5.3
+boto3==1.35.99
+python-multipart==0.0.20
+requests==2.33.1

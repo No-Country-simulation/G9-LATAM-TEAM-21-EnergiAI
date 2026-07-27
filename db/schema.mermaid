@@ -1,0 +1,48 @@
+erDiagram
+    TIPOS_INMUEBLE ||--o{ ANALISIS_ENERGETICO : "clasifica"
+    MODELOS ||--o{ ANALISIS_ENERGETICO : "genera"
+    ANALISIS_ENERGETICO ||--o{ RECOMENDACIONES : "produce"
+
+    TIPOS_INMUEBLE {
+        varchar tipo_inmueble PK
+        numeric consumo_base_kwh
+        numeric dispersion
+        int equipos_min
+        int equipos_max
+        text descripcion
+    }
+
+    MODELOS {
+        uuid id PK
+        varchar nombre
+        varchar version
+        timestamp fecha_entrenamiento
+        int n_registros_entrenamiento
+        numeric accuracy
+        numeric f1_macro
+        varchar ruta_artefacto
+        numeric tarifa_referencia_usd_kwh
+        boolean activo
+    }
+
+    ANALISIS_ENERGETICO {
+        uuid id PK
+        numeric consumo_kwh
+        boolean uso_horario_pico
+        int cantidad_equipos
+        varchar tipo_inmueble FK
+        int horas_alto_consumo
+        varchar categoria
+        numeric probabilidad
+        numeric costo_estimado_mensual
+        uuid modelo_id FK
+        timestamp fecha_creacion
+        varchar origen
+    }
+
+    RECOMENDACIONES {
+        int id PK
+        uuid analisis_id FK
+        text texto
+        int orden
+    }

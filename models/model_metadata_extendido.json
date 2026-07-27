@@ -1,0 +1,39 @@
+{
+  "modelo": "GradientBoosting",
+  "esquema": "extendido_v1",
+  "n_registros_entrenamiento": 100000,
+  "features_num": [
+    "consumo_kwh",
+    "cantidad_equipos",
+    "horas_alto_consumo",
+    "superficie_m2",
+    "habitantes_ocupantes",
+    "factor_potencia",
+    "pct_iluminacion_led",
+    "pct_equipos_inteligentes",
+    "antiguedad_promedio_ponderada",
+    "capacidad_solar_kwp",
+    "consumo_especifico_kwh_m2"
+  ],
+  "features_bool": [
+    "uso_horario_pico",
+    "tiene_paneles_solares"
+  ],
+  "features_cat": [
+    "tipo_inmueble",
+    "region_pais"
+  ],
+  "categorias": [
+    "Eficiente",
+    "Moderado",
+    "Ineficiente"
+  ],
+  "metricas_test": {
+    "accuracy": 0.6068,
+    "f1_macro": 0.6044799340914513
+  },
+  "metricas_test_modelo_base_referencia": {
+    "accuracy": 0.49335
+  },
+  "tarifa_referencia_usd_kwh": 0.75
+}

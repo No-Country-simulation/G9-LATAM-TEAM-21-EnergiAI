@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EnergiAI — Dashboard en vivo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --bg:#0F262B; --bg-card:#16323A; --bg-card-2:#1C3D45; --line:#2A4A50;
+  --text:#F1F5F3; --text-muted:#8FADA8;
+  --copper:#E8A33D; --mint:#6FCF97; --amber-warn:#E0B84B; --red:#D9432E;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  background: radial-gradient(circle at 15% 0%, #163137 0%, transparent 45%), var(--bg);
+  color:var(--text); font-family:'Manrope', sans-serif; min-height:100vh; padding:32px 20px 60px;
+}
+.wrap{max-width:1100px; margin:0 auto;}
+
+.topbar{ display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; }
+.eyebrow{
+  font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--copper); display:flex; align-items:center; gap:10px;
+}
+.eyebrow::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--mint); box-shadow:0 0 8px var(--mint); animation:pulse 1.6s infinite;}
+@keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+h1{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:clamp(24px,3.4vw,34px); margin-top:8px; letter-spacing:-0.01em;}
+
+.status{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--text-muted); text-align:right; }
+.status .dot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--mint); margin-right:6px; }
+.status.off .dot{ background:var(--red); }
+
+.controls{ margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.controls input{
+  background:var(--bg-card); border:1px solid var(--line); color:var(--text);
+  border-radius:8px; padding:8px 12px; font-family:'IBM Plex Mono', monospace; font-size:13px; width:280px;
+}
+.controls button{
+  background:var(--copper); border:none; color:#1a1207; font-weight:700; border-radius:8px;
+  padding:9px 16px; font-family:'Manrope',sans-serif; font-size:13px; cursor:pointer;
+}
+.controls button.secondary{ background:transparent; border:1px solid var(--line); color:var(--text-muted); }
+
+.manual-form{
+  margin-top:14px; background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:20px 22px;
+}
+.form-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:14px 18px; margin-bottom:16px; }
+@media (max-width:760px){ .form-grid{grid-template-columns:repeat(2, 1fr);} }
+.manual-form label{ display:flex; flex-direction:column; gap:5px; font-size:12.5px; color:var(--text-muted); }
+.manual-form input[type=number], .manual-form select{
+  background:#0F262B; border:1px solid var(--line); color:var(--text); border-radius:8px;
+  padding:8px 10px; font-family:'IBM Plex Mono', monospace; font-size:13px;
+}
+.manual-form label.checkbox-label{ flex-direction:row; align-items:center; gap:8px; font-size:13px; color:var(--text); }
+.manual-form label.checkbox-label input{ width:16px; height:16px; }
+.manual-form button{
+  background:var(--mint); border:none; color:#0a1f14; font-weight:700; border-radius:8px;
+  padding:10px 20px; font-family:'Manrope',sans-serif; font-size:13.5px; cursor:pointer;
+}
+#manualResultado{ margin-top:16px; }
+#manualResultado ul{ list-style:none; }
+#manualResultado li::before{ content:"→ "; color:var(--copper); }
+
+/* KPI grid */
+.kpis{ margin-top:28px; display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+@media (max-width:800px){ .kpis{grid-template-columns:repeat(2,1fr);} }
+.kpi{ background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:18px; }
+.kpi .k{ color:var(--text-muted); font-size:12.5px; }
+.kpi .v{ font-family:'Space Grotesk', sans-serif; font-size:28px; font-weight:700; margin-top:6px; }
+
+/* categorías bar */
+.section-label{
+  font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--text-muted); margin:34px 0 14px;
+}
+.cat-bars{ background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:20px 22px; }
+.cat-row{ display:grid; grid-template-columns:110px 1fr 50px; align-items:center; gap:12px; margin-bottom:12px; }
+.cat-row:last-child{ margin-bottom:0; }
+.cat-row .label{ font-size:13.5px; }
+.cat-track{ height:10px; border-radius:6px; background:#22434A; overflow:hidden; }
+.cat-fill{ height:100%; border-radius:6px; transition:width .5s ease; }
+.cat-fill.eficiente{ background:var(--mint); }
+.cat-fill.moderado{ background:var(--amber-warn); }
+.cat-fill.ineficiente{ background:var(--red); }
+.cat-row .count{ font-family:'IBM Plex Mono', monospace; text-align:right; font-size:13px; color:var(--text-muted); }
+
+/* geografía: barras + mapa */
+.geo-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media (max-width:800px){ .geo-grid{grid-template-columns:1fr;} }
+.geo-bars{ background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:20px 22px; }
+.geo-row{ display:grid; grid-template-columns:100px 1fr 34px; align-items:center; gap:10px; margin-bottom:11px; }
+.geo-row:last-child{ margin-bottom:0; }
+.geo-row .label{ font-size:13px; }
+.geo-track{ height:8px; border-radius:5px; background:#22434A; overflow:hidden; }
+.geo-fill{ height:100%; border-radius:5px; background:var(--copper); transition:width .5s ease; }
+.geo-row .count{ font-family:'IBM Plex Mono', monospace; text-align:right; font-size:12.5px; color:var(--text-muted); }
+
+.geo-map{ background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; align-items:center; justify-content:center; }
+.geo-map svg{ width:100%; max-width:220px; height:auto; }
+.geo-bubble{ transition:r .5s ease, opacity .5s ease; }
+.geo-map-label{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; fill:var(--text-muted); }
+.geo-map-count{ font-family:'Space Grotesk', sans-serif; font-size:11px; font-weight:700; fill:var(--text); }
+
+/* feed en vivo */
+.feed{ display:flex; flex-direction:column; gap:8px; max-height:420px; overflow-y:auto; }
+.feed-item{
+  background:var(--bg-card); border:1px solid var(--line); border-left:3px solid var(--copper);
+  border-radius:10px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;
+  font-size:13.5px; opacity:0; animation:slidein .4s ease forwards;
+}
+@keyframes slidein{ from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+.feed-item .tag{
+  font-family:'IBM Plex Mono', monospace; font-size:11px; padding:3px 9px; border-radius:999px;
+}
+.tag.eficiente{ background:rgba(111,207,151,.15); color:var(--mint); }
+.tag.moderado{ background:rgba(224,184,75,.15); color:var(--amber-warn); }
+.tag.ineficiente{ background:rgba(217,67,46,.15); color:var(--red); }
+.feed-item .meta{ color:var(--text-muted); font-family:'IBM Plex Mono', monospace; font-size:12px; }
+.empty{ color:var(--text-muted); font-size:13.5px; padding:30px; text-align:center; border:1px dashed var(--line); border-radius:12px; }
+
+footer{ margin-top:44px; text-align:center; color:var(--text-muted); font-size:12px; font-family:'IBM Plex Mono', monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <div class="eyebrow">EnergiAI · Dashboard en vivo</div>
+      <h1>Análisis energético en tiempo real</h1>
+    </div>
+    <div class="status off" id="status"><span class="dot"></span><span id="statusText">Desconectado</span></div>
+  </div>
+
+  <div class="controls">
+    <input id="apiUrl" type="text" value="http://localhost:8000" placeholder="URL de la API, ej. http://localhost:8000">
+    <button onclick="conectar()">Conectar</button>
+    <button class="secondary" onclick="detener()">Pausar</button>
+  </div>
+
+  <div class="section-label">Probar un análisis manual</div>
+  <div class="manual-form">
+    <div class="form-grid">
+      <label>Consumo (kWh)<input type="number" id="mConsumo" value="420" step="0.1"></label>
+      <label>Tipo de inmueble
+        <select id="mTipo">
+          <option>Apartamento</option>
+          <option selected>Casa</option>
+          <option>Casa Grande</option>
+          <option>Local Comercial</option>
+        </select>
+      </label>
+      <label>Cantidad de equipos<input type="number" id="mEquipos" value="10"></label>
+      <label>Horas alto consumo<input type="number" id="mHoras" value="8"></label>
+      <label>Superficie (m²)<input type="number" id="mSuperficie" value="120"></label>
+      <label>País
+        <select id="mPais">
+          <option selected>Peru</option>
+          <option>Colombia</option>
+          <option>Chile</option>
+          <option>México</option>
+        </select>
+      </label>
+      <label>Región
+        <select id="mRegion">
+          <option selected>Costa</option>
+          <option>Sierra</option>
+          <option>Selva</option>
+        </select>
+      </label>
+      <label>Capacidad solar (kWp)<input type="number" id="mSolarKwp" value="0" step="0.1"></label>
+      <label class="checkbox-label"><input type="checkbox" id="mPico" checked> Uso en horario pico</label>
+      <label class="checkbox-label"><input type="checkbox" id="mSolar"> Tiene paneles solares</label>
+    </div>
+    <button onclick="enviarManual()">Analizar</button>
+    <div id="manualResultado"></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="k">Total analizados</div><div class="v" id="kpiTotal">—</div></div>
+    <div class="kpi"><div class="k">Consumo promedio</div><div class="v" id="kpiConsumo">—</div></div>
+    <div class="kpi"><div class="k">Costo estimado acumulado</div><div class="v" id="kpiCosto">—</div></div>
+    <div class="kpi">
+      <div class="k">CO₂ evitable acumulado</div>
+      <div class="v mint" id="kpiCo2">—</div>
+      <div class="delta" id="kpiCo2Equiv">—</div>
+    </div>
+    <div class="kpi">
+      <div class="k">Ingreso excedente solar</div>
+      <div class="v mint" id="kpiSolar">—</div>
+      <div class="delta">Acreditado por venta a la red</div>
+    </div>
+  </div>
+
+  <div class="section-label">Distribución por categoría</div>
+  <div class="cat-bars" id="catBars">
+    <div class="cat-row"><div class="label">Eficiente</div><div class="cat-track"><div class="cat-fill eficiente" style="width:0%"></div></div><div class="count">0</div></div>
+    <div class="cat-row"><div class="label">Moderado</div><div class="cat-track"><div class="cat-fill moderado" style="width:0%"></div></div><div class="count">0</div></div>
+    <div class="cat-row"><div class="label">Ineficiente</div><div class="cat-track"><div class="cat-fill ineficiente" style="width:0%"></div></div><div class="count">0</div></div>
+  </div>
+
+  <div class="section-label">Distribución geográfica</div>
+  <div class="geo-grid">
+    <div class="geo-bars" id="geoBars"></div>
+    <div class="geo-map">
+      <!-- Mapa esquemático (no cartográfico) de los 4 países soportados,
+           ordenados de norte a sur sobre el Pacífico latinoamericano.
+           Los círculos ("burbujas") escalan con la cantidad de análisis. -->
+      <svg viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg">
+        <line x1="100" y1="20" x2="100" y2="400" stroke="#22434A" stroke-width="2" stroke-dasharray="3 6"/>
+        <g id="geoMapPoints">
+          <!-- México -->
+          <g data-pais="México" transform="translate(100,55)">
+            <circle class="geo-bubble" r="6" fill="var(--copper)" fill-opacity="0.35"/>
+            <text class="geo-map-label" y="-16" text-anchor="middle">MÉXICO</text>
+            <text class="geo-map-count" y="4" text-anchor="middle">0</text>
+          </g>
+          <!-- Colombia -->
+          <g data-pais="Colombia" transform="translate(100,155)">
+            <circle class="geo-bubble" r="6" fill="var(--copper)" fill-opacity="0.35"/>
+            <text class="geo-map-label" y="-16" text-anchor="middle">COLOMBIA</text>
+            <text class="geo-map-count" y="4" text-anchor="middle">0</text>
+          </g>
+          <!-- Peru -->
+          <g data-pais="Peru" transform="translate(100,250)">
+            <circle class="geo-bubble" r="6" fill="var(--copper)" fill-opacity="0.35"/>
+            <text class="geo-map-label" y="-16" text-anchor="middle">PERÚ</text>
+            <text class="geo-map-count" y="4" text-anchor="middle">0</text>
+          </g>
+          <!-- Chile -->
+          <g data-pais="Chile" transform="translate(100,365)">
+            <circle class="geo-bubble" r="6" fill="var(--copper)" fill-opacity="0.35"/>
+            <text class="geo-map-label" y="-16" text-anchor="middle">CHILE</text>
+            <text class="geo-map-count" y="4" text-anchor="middle">0</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="section-label">Energía disponible por país (excedente solar vendible)</div>
+  <div class="geo-bars" id="energiaBars"></div>
+
+  <div class="section-label">Últimos análisis</div>
+  <div class="feed" id="feed">
+    <div class="empty">Conecta la API para empezar a ver análisis en vivo.</div>
+  </div>
+
+  <footer>EnergiAI — Hackathon ONE · Alura + Oracle · Consumiendo GET /estadisticas cada 3s</footer>
+</div>
+
+<script>
+let intervalId = null;
+let vistos = new Set();
+
+function setStatus(ok, text){
+  const el = document.getElementById('status');
+  el.classList.toggle('off', !ok);
+  document.getElementById('statusText').textContent = text;
+}
+
+function fmtMoney(v){ return '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+async function actualizar(){
+  const base = document.getElementById('apiUrl').value.replace(/\/$/, '');
+  try{
+    const resp = await fetch(`${base}/estadisticas?ultimos=15`);
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    setStatus(true, 'Conectado');
+    render(data);
+  }catch(err){
+    setStatus(false, 'Sin conexión (' + err.message + ')');
+  }
+}
+
+function render(data){
+  document.getElementById('kpiTotal').textContent = data.total_analizados;
+  document.getElementById('kpiConsumo').textContent = data.consumo_promedio_kwh + ' kWh';
+  document.getElementById('kpiCosto').textContent = fmtMoney(data.costo_estimado_total_mensual);
+
+  const co2 = data.co2_evitable_total_kg_mes || 0;
+  document.getElementById('kpiCo2').textContent = co2.toLocaleString('en-US', {maximumFractionDigits:1}) + ' kg';
+  // Equivalencias ilustrativas (no oficiales): ~21 kg CO2/árbol/año absorbidos;
+  // ~0.12 kg CO2/km de un auto promedio.
+  const arbolesAnio = (co2 * 12) / 21;
+  const kmNoManejados = co2 / 0.12;
+  document.getElementById('kpiCo2Equiv').textContent =
+    `≈ ${arbolesAnio.toFixed(1)} árboles/año · ${Math.round(kmNoManejados).toLocaleString('en-US')} km no manejados`;
+
+  document.getElementById('kpiSolar').textContent = fmtMoney(data.ingreso_solar_total_mensual || 0);
+
+  const total = data.total_analizados || 1;
+  const cat = data.conteo_por_categoria;
+
+  const bars = document.querySelectorAll('#catBars .cat-row');
+  const orden = ['Eficiente', 'Moderado', 'Ineficiente'];
+  orden.forEach((nombre, i) => {
+    const count = cat[nombre] || 0;
+    const pct = Math.round(100 * count / total);
+    bars[i].querySelector('.cat-fill').style.width = pct + '%';
+    bars[i].querySelector('.count').textContent = count;
+  });
+
+  const feed = document.getElementById('feed');
+  if(data.ultimos_analisis.length === 0){
+    feed.innerHTML = '<div class="empty">Aún no hay análisis. Corre simular_trafico.py o envía una solicitud a /analisis-energetico.</div>';
+    return;
+  }
+  feed.innerHTML = '';
+  data.ultimos_analisis.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'feed-item';
+    const tagClass = item.categoria.toLowerCase();
+    div.innerHTML = `
+      <div>
+        <span class="tag ${tagClass}">${item.categoria}</span>
+        <span style="margin-left:10px;">${item.tipo_inmueble} · ${item.consumo_kwh} kWh</span>
+        <span style="margin-left:10px; color:var(--text-muted); font-size:12px;">${item.pais || ''}</span>
+      </div>
+      <div class="meta">${fmtMoney(item.costo_estimado_mensual)}</div>
+    `;
+    feed.appendChild(div);
+  });
+
+  renderGeo(data.conteo_por_pais || {});
+  renderEnergiaDisponible(data.energia_disponible_por_pais_kwh || {});
+}
+
+function renderEnergiaDisponible(porPaisKwh){
+  const paises = ["Peru", "Colombia", "Chile", "México"];
+  const maxKwh = Math.max(1, ...paises.map(p => porPaisKwh[p] || 0));
+  const el = document.getElementById('energiaBars');
+  el.innerHTML = paises.map(p => {
+    const kwh = porPaisKwh[p] || 0;
+    const pct = Math.round(100 * kwh / maxKwh);
+    return `
+      <div class="geo-row">
+        <div class="label">${p}</div>
+        <div class="geo-track"><div class="geo-fill" style="width:${pct}%; background:var(--mint);"></div></div>
+        <div class="count">${kwh.toFixed(0)} kWh</div>
+      </div>`;
+  }).join('');
+}
+
+async function enviarManual(){
+  const base = document.getElementById('apiUrl').value.replace(/\/$/, '');
+  const payload = {
+    consumo_kwh: parseFloat(document.getElementById('mConsumo').value),
+    uso_horario_pico: document.getElementById('mPico').checked,
+    cantidad_equipos: parseInt(document.getElementById('mEquipos').value),
+    tipo_inmueble: document.getElementById('mTipo').value,
+    horas_alto_consumo: parseInt(document.getElementById('mHoras').value),
+    superficie_m2: parseFloat(document.getElementById('mSuperficie').value),
+    tiene_paneles_solares: document.getElementById('mSolar').checked,
+    capacidad_solar_kwp: parseFloat(document.getElementById('mSolarKwp').value) || 0,
+    pais: document.getElementById('mPais').value,
+    region_pais: document.getElementById('mRegion').value,
+  };
+
+  const resDiv = document.getElementById('manualResultado');
+  resDiv.innerHTML = '<div class="empty">Analizando...</div>';
+
+  try{
+    const resp = await fetch(`${base}/analisis-energetico`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if(!resp.ok){
+      const err = await resp.json();
+      resDiv.innerHTML = `<div class="empty">Error de validación: ${JSON.stringify(err.detail)}</div>`;
+      return;
+    }
+    const data = await resp.json();
+    const tagClass = data.categoria.toLowerCase();
+    resDiv.innerHTML = `
+      <div class="feed-item" style="opacity:1;">
+        <div>
+          <span class="tag ${tagClass}">${data.categoria}</span>
+          <span style="margin-left:10px; color:var(--text-muted); font-size:12px;">prob. ${data.probabilidad}</span>
+        </div>
+        <div class="meta">${fmtMoney(data.costo_estimado_mensual)}</div>
+      </div>
+      <div style="margin-top:10px; font-size:12.5px; color:var(--text-muted);">
+        Brief: ${fmtMoney(data.costo_referencia_brief)} · CO₂ evitable: ${data.co2_evitable_kg_mes} kg ·
+        Excedente solar: ${data.excedente_solar_kwh} kWh (${fmtMoney(data.ingreso_estimado_excedente_mensual)})
+      </div>
+      <ul style="margin-top:10px; padding-left:4px; font-size:13px;">
+        ${data.recomendaciones.map(r => `<li style="margin-bottom:5px;">${r}</li>`).join('')}
+      </ul>
+    `;
+    if(intervalId) actualizar(); // refresca KPIs/feed con este nuevo análisis
+  }catch(err){
+    resDiv.innerHTML = `<div class="empty">Error de red: ${err.message}</div>`;
+  }
+}
+
+function renderGeo(conteoPorPais){
+  const paises = ["Peru", "Colombia", "Chile", "México"];
+  const total = Object.values(conteoPorPais).reduce((a,b) => a+b, 0) || 1;
+  const maxCount = Math.max(1, ...paises.map(p => conteoPorPais[p] || 0));
+
+  // Barras
+  const barsEl = document.getElementById('geoBars');
+  barsEl.innerHTML = paises.map(p => {
+    const count = conteoPorPais[p] || 0;
+    const pct = Math.round(100 * count / total);
+    return `
+      <div class="geo-row">
+        <div class="label">${p}</div>
+        <div class="geo-track"><div class="geo-fill" style="width:${pct}%"></div></div>
+        <div class="count">${count}</div>
+      </div>`;
+  }).join('');
+
+  // Mapa (burbujas escaladas por conteo)
+  paises.forEach(p => {
+    const count = conteoPorPais[p] || 0;
+    const g = document.querySelector(`#geoMapPoints g[data-pais="${p}"]`);
+    if(!g) return;
+    const r = 6 + 24 * (count / maxCount);
+    const opacity = count === 0 ? 0.15 : 0.35 + 0.5 * (count / maxCount);
+    const circle = g.querySelector('circle');
+    circle.setAttribute('r', r.toFixed(1));
+    circle.setAttribute('fill-opacity', opacity.toFixed(2));
+    g.querySelector('.geo-map-count').textContent = count;
+  });
+}
+
+function conectar(){
+  detener();
+  actualizar();
+  intervalId = setInterval(actualizar, 3000);
+}
+function detener(){
+  if(intervalId){ clearInterval(intervalId); intervalId = null; }
+  setStatus(false, 'Pausado');
+}
+
+// Los navegadores frenan (throttle) setInterval cuando la pestaña queda en
+// segundo plano (ej. al cambiar a la terminal para correr el simulador),
+// lo cual puede leerse como "desconexión" aunque el servidor siga sano.
+// Al volver a la pestaña, forzamos una actualización inmediata.
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && intervalId){
+    actualizar();
+  }
+});
+</script>
+</body>
+</html>
