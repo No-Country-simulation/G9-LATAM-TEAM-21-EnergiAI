@@ -4,4 +4,5 @@ __pycache__/
 .ipynb_checkpoints/
 *.env
 venv/
-.venv/
+.venv/*.csv
+energiai.db
