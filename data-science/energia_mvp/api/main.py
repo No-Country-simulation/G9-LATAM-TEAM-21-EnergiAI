@@ -149,7 +149,7 @@ def analisis_energetico(payload: ConsumoEnergeticoRequest):
     resultado_id = str(uuid.uuid4())
     resultado = {
         "id": resultado_id,
-        "categoria": str(categoria),
+        "categoria": str(categoria).upper(),
         "probabilidad": round(probabilidad, 2),
         "recomendaciones": generar_recomendaciones(registro),
         "costo_estimado_mensual": estimar_costo(registro["consumo_kwh"]),

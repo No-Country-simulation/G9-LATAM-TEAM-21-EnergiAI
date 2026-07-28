@@ -26,7 +26,8 @@ public class AnalisisEnergetico {
 
     @Id
     @UuidGenerator
-    @Column(updatable = false, nullable = false)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(updatable = false, nullable = false, length = 36)
     private UUID id;
 
     @Column(name = "consumo_kwh")
@@ -58,6 +59,6 @@ public class AnalisisEnergetico {
     @Column(name = "costo_estimado_mensual", precision = 10, scale = 2)
     private BigDecimal costoEstimadoMensual;
 
-    @Column(name = "fecha_creacion", updatable = false)
+    @Column(name = "creacion", updatable = false)
     private LocalDateTime fechaCreacion;
 }
