@@ -1262,8 +1262,8 @@
         badgeSpan.textContent = item.clasificacion;
 
         const detalle = document.createElement('span');
-        const aparatosStr = item.aparatos ? item.aparatos.length : 0;
-        detalle.textContent = `${item.consumo.toFixed(1)} kWh · ${item.moneda} ${item.costo.toFixed(2)} · ${item.pais} ${item.anio} · ${aparatosStr} aparatos`;
+        const totalEquipos = item.equipos || (item.aparatos ? item.aparatos.length : 0);
+        detalle.textContent = `${item.consumo.toFixed(1)} kWh · ${item.moneda} ${item.costo.toFixed(2)} · ${item.pais} ${item.anio} · ${totalEquipos} equipos`;
 
         const fechaSpan = document.createElement('span');
         fechaSpan.className = 'h-fecha';
