@@ -205,6 +205,13 @@
       transform: scale(1.02);
       box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
     }
+    .btn-primary:disabled {
+      background: var(--border-color);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
     .btn-secondary {
       background: var(--bg-input);
       border: 1px solid var(--border-color);
@@ -537,33 +544,30 @@
 
   <!-- tarjeta de resultados -->
   <section class="card" id="resultCard">
-    <div class="card-title">Resultado actual</div>
+    <div class="card-title">Resultado del análisis</div>
     <div id="resultContent">
-      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;">
-        <span class="profile-badge" id="perfilBadge">—</span>
-        <span style="color: var(--text-muted); font-size:0.95rem;" id="clasificacionTexto">Clasificación</span>
+      <div id="resultadoPlaceholder" style="text-align:center; padding:2rem 1rem; color:var(--text-muted);">
+        <p style="font-size:1.1rem; margin-bottom:0.5rem;">Aún no se ha realizado ningún análisis.</p>
+        <p style="font-size:0.9rem;">Agrega aparatos y haz clic en <strong>"Analizar"</strong> para ver los resultados.</p>
       </div>
-      <div class="result-stats">
-        <div class="stat-item"><span class="stat-label">Consumo estimado</span><span class="stat-value" id="consumoEstimado">—</span></div>
-        <div class="stat-item"><span class="stat-label">Costo mensual</span><span class="stat-value" id="costoMensual">—</span></div>
-        <div class="stat-item"><span class="stat-label">Eficiencia</span><span class="stat-value" id="indiceEficiencia">—</span></div>
-        <div class="stat-item"><span class="stat-label">Confianza IA</span><span class="stat-value" id="confianzaIA">—</span></div>
-      </div>
-      <div style="margin-top: 1rem;">
-        <strong style="color: var(--text-secondary);">Recomendaciones</strong>
-        <ul class="reco-list" id="recoList">
-          <li>Agrega aparatos y haz clic en "Analizar" para ver recomendaciones.</li>
-        </ul>
-      </div>
-      <div style="margin-top: 1.2rem;">
-        <details>
-          <summary style="cursor:pointer; font-weight:500; color:var(--accent);">JSON (integración)</summary>
-          <div class="json-output" id="jsonOutput">{ "mensaje": "Esperando datos..." }</div>
-        </details>
+      <div id="resultadoDetalle" style="display:none;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;">
+          <span class="profile-badge" id="perfilBadge">—</span>
+          <span style="color: var(--text-muted); font-size:0.95rem;" id="clasificacionTexto">Clasificación</span>
+        </div>
+        <div class="result-stats">
+          <div class="stat-item"><span class="stat-label">Consumo estimado</span><span class="stat-value" id="consumoEstimado">—</span></div>
+          <div class="stat-item"><span class="stat-label">Costo mensual</span><span class="stat-value" id="costoMensual">—</span></div>
+          <div class="stat-item"><span class="stat-label">Eficiencia</span><span class="stat-value" id="indiceEficiencia">—</span></div>
+          <div class="stat-item"><span class="stat-label">Confianza IA</span><span class="stat-value" id="confianzaIA">—</span></div>
+        </div>
+        <div style="margin-top: 1rem;">
+          <strong style="color: var(--text-secondary);">Recomendaciones</strong>
+          <ul class="reco-list" id="recoList"></ul>
+        </div>
       </div>
       <div class="flex-actions" style="margin-top: 1.2rem;">
-        <button class="btn-primary" id="analizarBtn">Analizar</button>
-        <button class="btn-secondary" id="resetBtn">Valores iniciales</button>
+        <button class="btn-primary" id="analizarBtn" disabled>Analizar</button>
       </div>
     </div>
   </section>
@@ -583,7 +587,6 @@
     const horasPicoInput = document.getElementById('horasPico');
     const perfilUsoSelect = document.getElementById('perfilUso');
     const analizarBtn = document.getElementById('analizarBtn');
-    const resetBtn = document.getElementById('resetBtn');
 
     const perfilBadge = document.getElementById('perfilBadge');
     const clasificacionTexto = document.getElementById('clasificacionTexto');
@@ -592,7 +595,8 @@
     const indiceEficiencia = document.getElementById('indiceEficiencia');
     const confianzaIA = document.getElementById('confianzaIA');
     const recoList = document.getElementById('recoList');
-    const jsonOutput = document.getElementById('jsonOutput');
+    const resultadoPlaceholder = document.getElementById('resultadoPlaceholder');
+    const resultadoDetalle = document.getElementById('resultadoDetalle');
 
     const aparatosBody = document.getElementById('aparatosBody');
     const totalAparatos = document.getElementById('totalAparatos');
@@ -640,6 +644,22 @@
 
     function guardarAparatos() {
       localStorage.setItem(APARATOS_KEY, JSON.stringify(aparatos));
+    }
+
+    function actualizarEstadoBoton() {
+      const hayAparatos = aparatos.length > 0;
+      const datosValidos = aparatos.every(a => {
+        const nombre = (a.nombre || '').trim();
+        const consumo = parseFloat(a.consumo);
+        const cantidad = parseInt(a.cantidad);
+        return nombre !== '' && consumo > 0 && cantidad > 0;
+      });
+      analizarBtn.disabled = !(hayAparatos && datosValidos);
+    }
+
+    function corregirNegativos(value) {
+      const num = parseFloat(value);
+      return isNaN(num) || num < 0 ? 0 : num;
     }
 
     // ----- toast -----
@@ -723,12 +743,18 @@
           const field = this.dataset.field;
           let value = this.value;
           if (field === 'consumo' || field === 'cantidad') {
-            value = parseFloat(value) || 0;
+            value = corregirNegativos(value);
+            this.value = value;
           }
           aparatos[index][field] = value;
           guardarAparatos();
           renderizarAparatos();
-          actualizarVistaPrevia();
+          actualizarEstadoBoton();
+        });
+        input.addEventListener('input', function() {
+          if (this.dataset.field === 'consumo' || this.dataset.field === 'cantidad') {
+            if (parseFloat(this.value) < 0) this.value = 0;
+          }
         });
       });
 
@@ -738,15 +764,18 @@
           aparatos.splice(index, 1);
           guardarAparatos();
           renderizarAparatos();
-          actualizarVistaPrevia();
+          actualizarEstadoBoton();
         });
       });
+
+      actualizarEstadoBoton();
     }
 
     function agregarAparato() {
       aparatos.push({ nombre: 'Nuevo aparato', consumo: 0, cantidad: 1 });
       guardarAparatos();
       renderizarAparatos();
+      actualizarEstadoBoton();
       const inputs = document.querySelectorAll('.input-nombre');
       if (inputs.length > 0) {
         inputs[inputs.length - 1].focus();
@@ -755,34 +784,12 @@
     }
 
     function resetearAparatos() {
-      if (confirm('¿Restablecer la lista de aparatos a los valores predeterminados?')) {
-        aparatos = JSON.parse(JSON.stringify(APARATOS_POR_DEFECTO));
+      if (confirm('¿Vaciar la lista de aparatos?')) {
+        aparatos = [];
         guardarAparatos();
         renderizarAparatos();
-        actualizarVistaPrevia();
-        mostrarToast('Lista restablecida', 'Se cargaron los aparatos por defecto');
-      }
-    }
-
-    // ----- actualizar vista previa -----
-    function actualizarVistaPrevia() {
-      const { total, cantidad } = calcularTotales();
-      const horasPico = parseFloat(horasPicoInput.value) || 0;
-      const perfil = perfilUsoSelect.value;
-
-      if (total > 0 && cantidad > 0) {
-        const resultado = analizarConsumoLocal(total, horasPico, cantidad, perfil);
-        renderizar(resultado);
-      } else {
-        perfilBadge.textContent = '—';
-        perfilBadge.className = 'profile-badge';
-        clasificacionTexto.textContent = 'Agrega aparatos para analizar';
-        consumoEstimado.innerHTML = '—';
-        costoMensual.innerHTML = '—';
-        indiceEficiencia.innerHTML = '—';
-        confianzaIA.innerHTML = '—';
-        recoList.innerHTML = '<li>Agrega al menos un aparato con consumo > 0.</li>';
-        jsonOutput.textContent = JSON.stringify({ mensaje: 'Esperando datos...' }, null, 2);
+        actualizarEstadoBoton();
+        mostrarToast('Lista vaciada', 'Se eliminaron todos los aparatos');
       }
     }
 
@@ -853,6 +860,9 @@
     function renderizar(resultado) {
       const { clasificacion, consumo, costo, eficiencia, recomendaciones, moneda, probabilidad } = resultado;
 
+      resultadoPlaceholder.style.display = 'none';
+      resultadoDetalle.style.display = 'block';
+
       perfilBadge.textContent = clasificacion;
       perfilBadge.className = 'profile-badge';
       if (clasificacion === 'Eficiente') perfilBadge.classList.add('badge-eficiente');
@@ -878,22 +888,6 @@
           recoList.appendChild(li);
         });
       }
-
-      const jsonObj = {
-        perfil: clasificacion,
-        consumo_mensual_kwh: parseFloat(consumo.toFixed(1)),
-        costo_estimado: `${moneda} ${costo.toFixed(2)}`,
-        eficiencia_porcentaje: eficiencia,
-        probabilidad: probabilidad != null ? parseFloat((probabilidad * 100).toFixed(1)) : null,
-        recomendaciones: recomendaciones,
-        aparatos: aparatos.map(a => ({ 
-          nombre: a.nombre, 
-          consumo_kwh: parseFloat(a.consumo) || 0, 
-          cantidad: parseInt(a.cantidad) || 0 
-        })),
-        metadatos: { perfil_uso: resultado.perfil, horas_pico: resultado.horasPico, equipos: resultado.equipos }
-      };
-      jsonOutput.textContent = JSON.stringify(jsonObj, null, 2);
     }
 
     // ----- mapeo perfil frontend → tipo_inmueble -----
@@ -919,11 +913,6 @@
         return;
       }
 
-      if (horasPico < 0) {
-        alert('Las horas pico no pueden ser negativas.');
-        return;
-      }
-
       const payload = {
         consumo_kwh: parseFloat(total.toFixed(2)),
         uso_horario_pico: horasPico > 0,
@@ -931,6 +920,9 @@
         tipo_inmueble: PERFIL_INMUEBLE_MAP[perfil] || 'Casa',
         horas_alto_consumo: Math.round(horasPico)
       };
+
+      analizarBtn.disabled = true;
+      analizarBtn.textContent = 'Analizando...';
 
       try {
         const response = await fetch('/api/analise-energetica', {
@@ -972,14 +964,9 @@
         renderizar(resultado);
         mostrarToast('Modo offline', 'Cálculo local (API no disponible)');
       }
-    }
 
-    // ----- resetear valores -----
-    function resetearValores() {
-      horasPicoInput.value = DEFAULT.horasPico;
-      perfilUsoSelect.value = DEFAULT.perfil;
-      mostrarToast('Valores restablecidos', 'Se cargaron los valores por defecto');
-      actualizarVistaPrevia();
+      analizarBtn.textContent = 'Analizar';
+      actualizarEstadoBoton();
     }
 
     // ----- theme toggle -----
@@ -999,7 +986,6 @@
 
     // ----- eventos -----
     analizarBtn.addEventListener('click', ejecutarAnalisis);
-    resetBtn.addEventListener('click', resetearValores);
     themeToggle.addEventListener('click', toggleTheme);
     agregarAparatoBtn.addEventListener('click', agregarAparato);
     resetAparatosBtn.addEventListener('click', resetearAparatos);
@@ -1015,7 +1001,11 @@
     renderizarAparatos();
     horasPicoInput.value = DEFAULT.horasPico;
     perfilUsoSelect.value = DEFAULT.perfil;
-    setTimeout(actualizarVistaPrevia, 200);
+    actualizarEstadoBoton();
+
+    horasPicoInput.addEventListener('input', function() {
+      if (parseFloat(this.value) < 0) this.value = 0;
+    });
 
   })();
 </script>
