@@ -3,37 +3,36 @@ package com.hackathon.energia.client;
 import com.hackathon.energia.dto.DatosRegistroAnalisis;
 import com.hackathon.energia.dto.DatosRespuestaAnalisis;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
+import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class IaModelCliente {
-    private final HttpClient client = HttpClient.newHttpClient();
-    private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate;
 
     public DatosRespuestaAnalisis obtenerPrediccion(DatosRegistroAnalisis datos) {
         try {
-            String jsonBody = objectMapper.writeValueAsString(datos);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<DatosRegistroAnalisis> request = new HttpEntity<>(datos, headers);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(System.getenv("URL_MODELO")))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
+            String url = System.getenv("URL_MODELO");
+            log.info("Enviando a IA: {}", url);
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            ResponseEntity<DatosRespuestaAnalisis> response = restTemplate.postForEntity(url, request, DatosRespuestaAnalisis.class);
+            log.info("Respuesta IA: {}", response.getStatusCode());
 
-            String json = response.body();
-            return objectMapper.readValue(json, DatosRespuestaAnalisis.class);
+            return response.getBody();
 
-        } catch (Exception e){
-            throw new RuntimeException("Error al preparar la peticion hacia la IA)",e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al comunicarse con IA", e);
         }
     }
 }

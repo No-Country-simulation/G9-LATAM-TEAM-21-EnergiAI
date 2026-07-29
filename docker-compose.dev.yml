@@ -1,0 +1,29 @@
+services:
+  ia-service:
+    develop:
+      watch:
+        - path: ./data-science/energia_mvp/api
+          action: sync
+          target: /app/api
+        - path: ./data-science/energia_mvp/requirements.txt
+          action: rebuild
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  backend-api:
+    build:
+      dockerfile: Dockerfile.dev
+    develop:
+      watch:
+        - path: ./backend/backend-api/src
+          action: sync
+          target: /app/src
+
+  frontend:
+    develop:
+      watch:
+        - path: ./frontend/index.html
+          action: sync
+          target: /usr/share/nginx/html/index.html
+        - path: ./frontend/nginx.conf
+          action: sync+restart
+          target: /etc/nginx/conf.d/default.conf

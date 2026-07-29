@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Schema(description = "Resultado del análisis de eficiencia energética")
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record DatosRespuestaAnalisis(
         @Schema(description = "Categoría de eficiencia energética")
         CategoriaEnergetica categoria,
@@ -19,4 +21,6 @@ public record DatosRespuestaAnalisis(
 
         @Schema(description = "Costo estimado mensual en base a la tarifa de referencia", example = "315.00")
         BigDecimal costoEstimadoMensual
+) {}
+        @JsonProperty("costo_estimado_mensual") BigDecimal costoEstimadoMensual
 ) {}

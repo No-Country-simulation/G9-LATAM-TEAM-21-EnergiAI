@@ -1262,8 +1262,8 @@
         badgeSpan.textContent = item.clasificacion;
 
         const detalle = document.createElement('span');
-        const aparatosStr = item.aparatos ? item.aparatos.length : 0;
-        detalle.textContent = `${item.consumo.toFixed(1)} kWh · ${item.moneda} ${item.costo.toFixed(2)} · ${item.pais} ${item.anio} · ${aparatosStr} aparatos`;
+        const totalEquipos = item.equipos || (item.aparatos ? item.aparatos.length : 0);
+        detalle.textContent = `${item.consumo.toFixed(1)} kWh · ${item.moneda} ${item.costo.toFixed(2)} · ${item.pais} ${item.anio} · ${totalEquipos} equipos`;
 
         const fechaSpan = document.createElement('span');
         fechaSpan.className = 'h-fecha';
@@ -1305,8 +1305,20 @@
       }
     }
 
-    // ----- ejecutar análisis -----
-    function ejecutarAnalisis() {
+    // ----- mapeo perfil frontend → tipo_inmueble IA -----
+    const PERFIL_INMUEBLE_MAP = {
+      hogar: 'Casa',
+      oficina: 'Local Comercial',
+      comercio: 'Local Comercial',
+      mixto: 'Casa Grande'
+    };
+
+    function capitalizar(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    }
+
+    // ----- ejecutar análisis (backend API con fallback local) -----
+    async function ejecutarAnalisis() {
       const { total, cantidad } = calcularTotales();
       const horasPico = parseFloat(horasPicoInput.value) || 0;
       const perfil = perfilUsoSelect.value;
@@ -1323,10 +1335,66 @@
         return;
       }
 
-      const resultado = analizarConsumo(total, horasPico, cantidad, perfil, pais, anio);
-      renderizar(resultado);
-      guardarEnHistorial(resultado);
-      mostrarToast('✅ Análisis completado', `Clasificación: ${resultado.clasificacion}`);
+      const payload = {
+        consumo_kwh: parseFloat(total.toFixed(2)),
+        uso_horario_pico: horasPico > 0,
+        cantidad_equipos: cantidad,
+        tipo_inmueble: PERFIL_INMUEBLE_MAP[perfil] || 'Casa',
+        horas_alto_consumo: Math.round(horasPico)
+      };
+
+      try {
+        const response = await fetch('/api/analise-energetica', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errBody = await response.text().catch(() => '');
+          throw new Error(`API ${response.status}: ${errBody}`);
+        }
+
+        const data = await response.json();
+
+        const datosPais = obtenerDatosPais(pais, anio);
+        const moneda = datosPais ? datosPais.moneda : 'R$';
+        const promedioPais = datosPais ? datosPais.promedio_mensual : 220;
+
+        let eficiencia = 50;
+        if (data.categoria === 'EFICIENTE') eficiencia = 85;
+        else if (data.categoria === 'MODERADO') eficiencia = 55;
+        else eficiencia = 25;
+
+        const vsPromedioValor = Math.round((total / promedioPais) * 100);
+
+        const resultado = {
+          clasificacion: capitalizar(data.categoria),
+          consumo: total,
+          costo: data.costo_estimado_mensual,
+          eficiencia,
+          recomendaciones: data.recomendaciones,
+          perfil,
+          horasPico,
+          equipos: cantidad,
+          pais,
+          anio,
+          moneda,
+          promedioPais,
+          vsPromedio: vsPromedioValor,
+          consumoEsperado: Math.round(promedioPais * 1.2)
+        };
+
+        renderizar(resultado);
+        guardarEnHistorial(resultado);
+        mostrarToast('✅ Análisis completado', `Clasificación: ${resultado.clasificacion}`);
+      } catch (err) {
+        console.warn('API no disponible, usando cálculo local:', err);
+        const resultado = analizarConsumo(total, horasPico, cantidad, perfil, pais, anio);
+        renderizar(resultado);
+        guardarEnHistorial(resultado);
+        mostrarToast('⚠️ Modo offline', 'Cálculo local (API no disponible)');
+      }
     }
 
     // ----- resetear valores -----
