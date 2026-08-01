@@ -334,7 +334,7 @@
     analizarBtn.textContent = 'Analizando...';
 
     try {
-      const response = await fetch('/analise-energetica', {
+      const response = await fetch('/api/analise-energetica', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
