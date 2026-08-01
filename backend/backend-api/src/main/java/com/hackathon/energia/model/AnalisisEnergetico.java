@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
@@ -59,6 +60,7 @@ public class AnalisisEnergetico {
     @Column(name = "costo_estimado_mensual", precision = 10, scale = 2)
     private BigDecimal costoEstimadoMensual;
 
-    @Column(name = "creacion", updatable = false)
+    @CreationTimestamp
+    @Column(name = "creacion", updatable = false,  nullable = false)
     private LocalDateTime fechaCreacion;
 }
