@@ -1,4 +1,4 @@
-package com.hackathon.energia.service;
+package com.hackathon.energia.security;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
