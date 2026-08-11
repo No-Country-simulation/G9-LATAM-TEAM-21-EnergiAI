@@ -1,4 +1,4 @@
-package com.hackathon.energia.service;
+package com.hackathon.energia.security;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
