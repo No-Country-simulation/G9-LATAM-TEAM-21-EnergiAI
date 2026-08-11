@@ -33,7 +33,8 @@ public class UsuarioService implements UserDetailsService {
         }
 
         var usuario = new Usuario(datos.login(), encoder.encode(datos.password()));
-        return repository.save(usuario);
+        repository.save(usuario);
+        return usuario;
     }
 
 }
