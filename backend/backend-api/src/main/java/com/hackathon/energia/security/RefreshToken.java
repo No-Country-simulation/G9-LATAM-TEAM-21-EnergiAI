@@ -35,4 +35,8 @@ public class RefreshToken {
         this.expiraEn = expiraEn;
         this.revocado = false;
     }
+
+    public void setRevocado() {
+        this.revocado = true;
+    }
 }
