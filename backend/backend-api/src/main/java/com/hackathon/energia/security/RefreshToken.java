@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 
@@ -27,4 +28,11 @@ public class RefreshToken {
 
     private Instant expiraEn;
     private boolean revocado;
+
+    public RefreshToken(String tokenHash, Usuario usuario, Instant expiraEn) {
+        this.tokenHash = tokenHash;
+        this.usuario = usuario;
+        this.expiraEn = expiraEn;
+        this.revocado = false;
+    }
 }
