@@ -24,6 +24,12 @@ services:
         - path: ./frontend/index.html
           action: sync
           target: /usr/share/nginx/html/index.html
+        - path: ./frontend/login.html
+          action: sync
+          target: /usr/share/nginx/html/login.html
+        - path: ./frontend/register.html
+          action: sync
+          target: /usr/share/nginx/html/register.html
         - path: ./frontend/src
           action: sync
           target: /usr/share/nginx/html/src

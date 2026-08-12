@@ -1,5 +1,6 @@
 import { PERFIL_INMUEBLE_MAP, capitalizar } from '../utils/constants.js';
 import { analizarConsumoLocal } from './localAnalysis.js';
+import { apiFetch } from './http.js';
 
 export async function ejecutarAnalisis({ total, cantidad, horasPico, perfil }) {
   const payload = {
@@ -11,9 +12,8 @@ export async function ejecutarAnalisis({ total, cantidad, horasPico, perfil }) {
   };
 
   try {
-    const response = await fetch('/api/analise-energetica', {
+    const response = await apiFetch('/analise-energetica', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 

@@ -27,22 +27,23 @@ public class SecurityFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         var token = recuperarToken(request);
-        if (token == null) {
-            filterChain.doFilter(request, response);
+
+        if (token != null) {
+            try {
+                var subject = tokenService.getSubject(token);
+                repository.findByLogin(subject).ifPresent(usuario -> {
+                    if (usuario.isEnabled()) {
+                        var authentication = new UsernamePasswordAuthenticationToken(
+                                usuario, null, usuario.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
+                });
+            } catch (TokenInvalidoException ex) {
+                // No setear contexto; Spring devolverá 401 en rutas protegidas
+            }
         }
 
-        try{
-            var subject = tokenService.getSubject(token);
-            repository.findByLogin(subject).ifPresent(usuario -> {
-                if (usuario.isEnabled()) {
-                    var authentication = new UsernamePasswordAuthenticationToken(
-                            usuario, null, usuario.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-            });
-        } catch (TokenInvalidoException ex) {
-            // No setear contexto; Spring devolverá 401 en rutas protegidas
-        }
+        filterChain.doFilter(request, response);
     }
 
     private String recuperarToken(HttpServletRequest request) {

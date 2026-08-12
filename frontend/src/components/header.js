@@ -1,3 +1,5 @@
+import { logout } from '../services/authApi.js';
+
 export function initThemeToggle() {
   const themeToggle = document.getElementById('themeToggle');
   const themeIcon = document.getElementById('themeIcon');
@@ -18,4 +20,16 @@ export function initThemeToggle() {
   }
 
   themeToggle.addEventListener('click', toggleTheme);
+}
+
+export function initLogoutButton() {
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (!logoutBtn) return;
+
+  logoutBtn.addEventListener('click', async () => {
+    logoutBtn.disabled = true;
+    logoutBtn.textContent = 'Saliendo...';
+    await logout();
+    window.location.href = '/login.html';
+  });
 }
