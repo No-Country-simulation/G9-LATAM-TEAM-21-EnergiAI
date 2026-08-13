@@ -44,7 +44,7 @@ public class AnalisisEnergetico {
     private String tipoInmueble;
 
     @Column(name = "horas_alto_consumo")
-    private Integer horasAltoConsumo;
+    private Double horasAltoConsumo;
 
     @Column(name = "categoria")
     @Enumerated(EnumType.STRING)
