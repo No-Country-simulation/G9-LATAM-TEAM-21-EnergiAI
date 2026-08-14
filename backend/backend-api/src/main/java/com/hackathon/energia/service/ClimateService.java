@@ -60,11 +60,11 @@ public class ClimateService {
         return Optional.empty();
     }
 
-    private static class ClimateResponse {
+    static class ClimateResponse {
         public Main main;
     }
 
-    private static class Main {
+    static class Main {
         public Double temp;
     }
 }
