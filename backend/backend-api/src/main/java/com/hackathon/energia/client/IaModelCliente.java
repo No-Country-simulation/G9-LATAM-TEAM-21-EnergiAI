@@ -37,7 +37,7 @@ public class IaModelCliente {
             return response.getBody();
 
         } catch (Exception e) {
-            throw new RuntimeException("Error al comunicarse con IA", e);
+            throw new IllegalStateException("Error al comunicarse con IA: " + e.getMessage(), e);
         }
     }
 }

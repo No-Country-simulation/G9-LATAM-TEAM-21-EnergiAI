@@ -1,6 +1,7 @@
 package com.hackathon.energia.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hackathon.energia.validation.EnumValid;
 import jakarta.validation.constraints.*;
 
 public record DatosRegistroAnalisis(
@@ -71,11 +72,12 @@ public record DatosRegistroAnalisis(
 
         @JsonProperty("tipo_inmueble")
         @NotBlank(message = "tipo_inmueble es obligatorio")
-        @Pattern(regexp = "Casa|Apartamento|Local", message = "tipo_inmueble debe ser Casa, Apartamento o Local")
+        @EnumValid(values = {"Casa", "Apartamento", "Local"}, message = "tipo_inmueble debe ser Casa, Apartamento o Local")
         String tipoInmueble,
 
         @JsonProperty("region_pais")
         @NotBlank(message = "region_pais es obligatorio")
+        @EnumValid(values = {"CO-Bogota", "CO-Medellin", "MX-CDMX", "BR-Brasilia"}, message = "region_pais debe ser CO-Bogota, CO-Medellin, MX-CDMX o BR-Brasilia")
         String regionPais,
 
         @JsonProperty("latitud")
