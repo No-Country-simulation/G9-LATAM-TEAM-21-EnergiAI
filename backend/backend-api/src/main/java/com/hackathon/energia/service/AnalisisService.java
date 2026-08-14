@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +22,15 @@ public class AnalisisService {
 
     private final AnalisisEnergeticoRepository analisisEnergeticoRepository;
     private final IaModelCliente iaModelCliente;
+    private final ClimateService climateService;
 
     @Transactional
     public DatosRespuestaAnalisis procesarAnalisis(DatosRegistroAnalisis datos) {
        var prediccion = iaModelCliente.obtenerPrediccion(datos);
+
+       var recomendaciones = new ArrayList<>(prediccion.recomendaciones());
+       climateService.obtenerAlertaTemperatura(datos.latitud(), datos.longitud())
+               .ifPresent(recomendaciones::add);
 
        var costoEstimado = BigDecimal.valueOf(datos.consumoKwh())
                .multiply(TARIFA_REFERENCIA_KWH)
@@ -48,7 +55,7 @@ public class AnalisisService {
                 .longitud(datos.longitud())
                 .categoria(prediccion.categoria())
                 .probabilidad(prediccion.probabilidad())
-                .recomendaciones(prediccion.recomendaciones())
+                .recomendaciones(recomendaciones)
                 .costoEstimadoMensual(costoEstimado)
                 .build();
 
@@ -57,7 +64,7 @@ public class AnalisisService {
        return new DatosRespuestaAnalisis(
                prediccion.categoria(),
                prediccion.probabilidad(),
-               prediccion.recomendaciones(),
+               recomendaciones,
                costoEstimado,
                analisisGuardado.getId(),
                analisisGuardado.getFechaCreacion().toLocalDate()
