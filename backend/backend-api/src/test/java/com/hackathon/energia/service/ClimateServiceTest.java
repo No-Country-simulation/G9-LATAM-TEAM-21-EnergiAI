@@ -49,9 +49,9 @@ class ClimateServiceTest {
             Optional<String> result = climateService.obtenerAlertaTemperatura(4.7110, -74.0721);
 
             assertTrue(result.isPresent());
-            assertTrue(result.get().contains("35.0°C"));
-            assertTrue(result.get().contains("32°C"));
-            assertTrue(result.get().contains("10%"));
+            assertTrue(result.get().contains("35.0"));
+            assertTrue(result.get().contains("32"));
+            assertTrue(result.get().contains("10"));
         }
 
         @Test

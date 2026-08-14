@@ -207,7 +207,7 @@ class AnalisisServiceTest {
             var resultado = analisisService.procesarAnalisis(datosPrueba);
 
             assertEquals(1, resultado.recomendaciones().size());
-            assertEquals("Recomendación 1", resultado.recomendaciones().getFirst());
+            assertEquals("Recomendación 1", resultado.recomendaciones().get(0));
         }
     }
 

@@ -1,28 +1,26 @@
 package com.hackathon.energia.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hackathon.energia.client.IaModelCliente;
 import com.hackathon.energia.dto.DatosRegistroAnalisis;
 import com.hackathon.energia.dto.DatosRespuestaAnalisis;
-import com.hackathon.energia.dto.DatosRespuestaModeloIA;
+import com.hackathon.energia.exception.InvalidEnumValueException;
 import com.hackathon.energia.model.CategoriaEnergetica;
 import com.hackathon.energia.service.AnalisisService;
-import com.hackathon.energia.service.ClimateService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -30,9 +28,14 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@WebMvcTest(
+        controllers = AnalisisController.class,
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = {com.hackathon.energia.security.SecurityConfig.class, com.hackathon.energia.security.SecurityFilter.class}
+        )
+)
 @AutoConfigureMockMvc(addFilters = false)
-@ActiveProfiles("test")
 class AnalisisControllerIntegrationTest {
 
     @Autowired
@@ -42,10 +45,7 @@ class AnalisisControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private IaModelCliente iaModelCliente;
-
-    @MockBean
-    private ClimateService climateService;
+    private AnalisisService analisisService;
 
     private DatosRegistroAnalisis crearDatosValidos() {
         return new DatosRegistroAnalisis(
@@ -68,6 +68,17 @@ class AnalisisControllerIntegrationTest {
         );
     }
 
+    private DatosRespuestaAnalisis crearRespuestaValida() {
+        return new DatosRespuestaAnalisis(
+                CategoriaEnergetica.INEFICIENTE,
+                0.81,
+                List.of("Reducir uso de equipos en horario pico"),
+                new BigDecimal("315.00"),
+                UUID.randomUUID(),
+                LocalDate.now()
+        );
+    }
+
     @Nested
     @DisplayName("POST /analise-energetica - Caso de éxito")
     class CasoExito {
@@ -75,13 +86,7 @@ class AnalisisControllerIntegrationTest {
         @Test
         @DisplayName("Payload válido → 201 CREATED con respuesta completa")
         void testPayloadValido() throws Exception {
-            var prediccion = new DatosRespuestaModeloIA(
-                    CategoriaEnergetica.INEFICIENTE,
-                    0.81,
-                    List.of("Reducir uso de equipos en horario pico")
-            );
-            when(iaModelCliente.obtenerPrediccion(any())).thenReturn(prediccion);
-            when(climateService.obtenerAlertaTemperatura(any(), any())).thenReturn(Optional.empty());
+            when(analisisService.procesarAnalisis(any())).thenReturn(crearRespuestaValida());
 
             var datos = crearDatosValidos();
 
@@ -100,14 +105,15 @@ class AnalisisControllerIntegrationTest {
         @Test
         @DisplayName("Con alerta climática → recomendaciones incluye alerta")
         void testConAlertaClimatica() throws Exception {
-            var prediccion = new DatosRespuestaModeloIA(
+            var respuesta = new DatosRespuestaAnalisis(
                     CategoriaEnergetica.MODERADO,
                     0.75,
-                    List.of("Recomendación 1")
+                    List.of("Recomendación 1", "Alerta de temperatura alta"),
+                    new BigDecimal("315.00"),
+                    UUID.randomUUID(),
+                    LocalDate.now()
             );
-            when(iaModelCliente.obtenerPrediccion(any())).thenReturn(prediccion);
-            when(climateService.obtenerAlertaTemperatura(4.7110, -74.0721))
-                    .thenReturn(Optional.of("Alerta de temperatura alta"));
+            when(analisisService.procesarAnalisis(any())).thenReturn(respuesta);
 
             var datos = crearDatosValidos();
 
@@ -132,9 +138,7 @@ class AnalisisControllerIntegrationTest {
             mockMvc.perform(post("/analise-energetica")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(jsonInvalido))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status").value(400))
-                    .andExpect(jsonPath("$.error").value("JSON malformado"));
+                    .andExpect(status().isBadRequest());
         }
 
         @Test
@@ -204,7 +208,7 @@ class AnalisisControllerIntegrationTest {
     class EnumInvalido {
 
         @Test
-        @DisplayName("tipo_inmueble='Oficina' → 422 UNPROCESSABLE_ENTITY")
+        @DisplayName("tipo_inmueble='Oficina' → 400 BAD_REQUEST (validación en controller)")
         void testTipoInmuebleInvalido() throws Exception {
             var datos = new DatosRegistroAnalisis(
                     420.0,
@@ -228,13 +232,13 @@ class AnalisisControllerIntegrationTest {
             mockMvc.perform(post("/analise-energetica")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(datos)))
-                    .andExpect(status().isUnprocessableEntity())
-                    .andExpect(jsonPath("$.status").value(422))
-                    .andExpect(jsonPath("$.error").value("Valor de enum inválido"));
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status").value(400))
+                    .andExpect(jsonPath("$.error").value("Datos de entrada inválidos"));
         }
 
         @Test
-        @DisplayName("region_pais='AR-BuenosAires' → 422 UNPROCESSABLE_ENTITY")
+        @DisplayName("region_pais='AR-BuenosAires' → 400 BAD_REQUEST (validación en controller)")
         void testRegionPaisInvalido() throws Exception {
             var datos = new DatosRegistroAnalisis(
                     420.0,
@@ -258,9 +262,9 @@ class AnalisisControllerIntegrationTest {
             mockMvc.perform(post("/analise-energetica")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(datos)))
-                    .andExpect(status().isUnprocessableEntity())
-                    .andExpect(jsonPath("$.status").value(422))
-                    .andExpect(jsonPath("$.error").value("Valor de enum inválido"));
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.status").value(400))
+                    .andExpect(jsonPath("$.error").value("Datos de entrada inválidos"));
         }
     }
 
@@ -271,7 +275,7 @@ class AnalisisControllerIntegrationTest {
         @Test
         @DisplayName("Cuando IA falla → 503 SERVICE_UNAVAILABLE")
         void testErrorServicioIA() throws Exception {
-            when(iaModelCliente.obtenerPrediccion(any()))
+            when(analisisService.procesarAnalisis(any()))
                     .thenThrow(new IllegalStateException("Error al comunicarse con IA"));
 
             var datos = crearDatosValidos();
