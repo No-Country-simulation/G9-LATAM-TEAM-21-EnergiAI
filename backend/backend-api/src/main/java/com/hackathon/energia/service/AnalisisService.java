@@ -9,9 +9,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 @Service
 @RequiredArgsConstructor
 public class AnalisisService {
+
+    private static final BigDecimal TARIFA_REFERENCIA_KWH = new BigDecimal("0.75");
 
     private final AnalisisEnergeticoRepository analisisEnergeticoRepository;
     private final IaModelCliente iaModelCliente;
@@ -19,6 +24,10 @@ public class AnalisisService {
     @Transactional
     public DatosRespuestaAnalisis procesarAnalisis(DatosRegistroAnalisis datos) {
        var prediccion = iaModelCliente.obtenerPrediccion(datos);
+
+       var costoEstimado = BigDecimal.valueOf(datos.consumoKwh())
+               .multiply(TARIFA_REFERENCIA_KWH)
+               .setScale(2, RoundingMode.HALF_UP);
 
         var analisis = AnalisisEnergetico.builder()
                 .consumoKwh(datos.consumoKwh())
@@ -40,10 +49,18 @@ public class AnalisisService {
                 .categoria(prediccion.categoria())
                 .probabilidad(prediccion.probabilidad())
                 .recomendaciones(prediccion.recomendaciones())
-                .costoEstimadoMensual(prediccion.costoEstimadoMensual())
+                .costoEstimadoMensual(costoEstimado)
                 .build();
 
-       analisisEnergeticoRepository.save(analisis);
-       return prediccion;
+       var analisisGuardado = analisisEnergeticoRepository.save(analisis);
+
+       return new DatosRespuestaAnalisis(
+               prediccion.categoria(),
+               prediccion.probabilidad(),
+               prediccion.recomendaciones(),
+               costoEstimado,
+               analisisGuardado.getId(),
+               analisisGuardado.getFechaCreacion().toLocalDate()
+       );
     }
 }
