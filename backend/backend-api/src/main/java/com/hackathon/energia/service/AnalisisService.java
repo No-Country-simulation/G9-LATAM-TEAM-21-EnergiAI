@@ -20,17 +20,28 @@ public class AnalisisService {
     public DatosRespuestaAnalisis procesarAnalisis(DatosRegistroAnalisis datos) {
        var prediccion = iaModelCliente.obtenerPrediccion(datos);
 
-       var analisis = AnalisisEnergetico.builder()
-               .consumoKwh(datos.consumoKwh())
-               .usoHorarioPico(datos.usoHorarioPico())
-               .cantidadEquipos(datos.cantidadEquipos())
-               .tipoInmueble(datos.tipoInmueble())
-               .horasAltoConsumo(datos.horasAltoConsumo())
-               .categoria(prediccion.categoria())
-               .probabilidad(prediccion.probabilidad())
-               .recomendaciones(prediccion.recomendaciones())
-               .costoEstimadoMensual(prediccion.costoEstimadoMensual())
-               .build();
+        var analisis = AnalisisEnergetico.builder()
+                .consumoKwh(datos.consumoKwh())
+                .usoHorarioPico(datos.usoHorarioPico())
+                .cantidadEquipos(datos.cantidadEquipos())
+                .tipoInmueble(datos.tipoInmueble())
+                .horasAltoConsumo(datos.horasAltoConsumo())
+                .superficieM2(datos.superficieM2())
+                .habitantesOcupantes(datos.habitantesOcupantes())
+                .factorPotencia(datos.factorPotencia())
+                .porcentajeIluminacionLed(datos.porcentajeIluminacionLed())
+                .porcentajeEquiposInteligentes(datos.porcentajeEquiposInteligentes())
+                .antiguedadPromedioPonderada(datos.antiguedadPromedioPonderada())
+                .capacidadSolarKwp(datos.capacidadSolarKwp())
+                .tienePanelesSolares(datos.tienePanelesSolares())
+                .regionPais(datos.regionPais())
+                .latitud(datos.latitud())
+                .longitud(datos.longitud())
+                .categoria(prediccion.categoria())
+                .probabilidad(prediccion.probabilidad())
+                .recomendaciones(prediccion.recomendaciones())
+                .costoEstimadoMensual(prediccion.costoEstimadoMensual())
+                .build();
 
        analisisEnergeticoRepository.save(analisis);
        return prediccion;
