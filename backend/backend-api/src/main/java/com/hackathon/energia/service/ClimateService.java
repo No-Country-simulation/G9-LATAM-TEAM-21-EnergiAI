@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Locale;
 import java.util.Optional;
 
 @Slf4j
@@ -46,6 +47,7 @@ public class ClimateService {
 
                 if (temperatura >= UMBRAL_TEMPERATURA_CELSIUS) {
                     String alerta = String.format(
+                            Locale.US,
                             "La temperatura actual es de %.1f°C, por encima del umbral de %.0f°C: minimiza el uso de electrodomésticos de alto consumo en este momento, podrías tener un incremento del %d%% en tu tarifa de consumo.",
                             temperatura, UMBRAL_TEMPERATURA_CELSIUS, RECARGO_ESTIMADO_PORCENTAJE
                     );

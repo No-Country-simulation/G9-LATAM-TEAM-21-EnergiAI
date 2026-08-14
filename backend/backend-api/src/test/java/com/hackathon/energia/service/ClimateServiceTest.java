@@ -43,7 +43,7 @@ class ClimateServiceTest {
             mockResponse.main = new ClimateService.Main();
             mockResponse.main.temp = 35.0;
 
-            when(restTemplate.getForObject(anyString(), eq(ClimateService.ClimateResponse.class)))
+            when(restTemplate.getForObject(anyString(), any(Class.class)))
                     .thenReturn(mockResponse);
 
             Optional<String> result = climateService.obtenerAlertaTemperatura(4.7110, -74.0721);
@@ -63,7 +63,7 @@ class ClimateServiceTest {
             mockResponse.main = new ClimateService.Main();
             mockResponse.main.temp = 32.0;
 
-            when(restTemplate.getForObject(anyString(), eq(ClimateService.ClimateResponse.class)))
+            when(restTemplate.getForObject(anyString(), any(Class.class)))
                     .thenReturn(mockResponse);
 
             Optional<String> result = climateService.obtenerAlertaTemperatura(4.7110, -74.0721);
@@ -85,7 +85,7 @@ class ClimateServiceTest {
             mockResponse.main = new ClimateService.Main();
             mockResponse.main.temp = 25.0;
 
-            when(restTemplate.getForObject(anyString(), eq(ClimateService.ClimateResponse.class)))
+            when(restTemplate.getForObject(anyString(), any(Class.class)))
                     .thenReturn(mockResponse);
 
             Optional<String> result = climateService.obtenerAlertaTemperatura(4.7110, -74.0721);
@@ -103,7 +103,7 @@ class ClimateServiceTest {
         void testFallbackSiApiFalla() {
             ReflectionTestUtils.setField(climateService, "apiKey", "test-key");
 
-            when(restTemplate.getForObject(anyString(), eq(ClimateService.ClimateResponse.class)))
+            when(restTemplate.getForObject(anyString(), any(Class.class)))
                     .thenThrow(new RestClientException("Connection timeout"));
 
             Optional<String> result = climateService.obtenerAlertaTemperatura(4.7110, -74.0721);

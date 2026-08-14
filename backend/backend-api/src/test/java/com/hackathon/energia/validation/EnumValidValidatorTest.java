@@ -1,6 +1,5 @@
 package com.hackathon.energia.validation;
 
-import com.hackathon.energia.exception.InvalidEnumValueException;
 import jakarta.validation.ConstraintValidatorContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +23,9 @@ class EnumValidValidatorTest {
         context = mock(ConstraintValidatorContext.class);
 
         when(annotation.values()).thenReturn(new String[]{"Casa", "Apartamento", "Local"});
+        when(annotation.message()).thenReturn("tipo_inmueble debe ser Casa, Apartamento o Local");
+        when(context.buildConstraintViolationWithTemplate(org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.class));
         validator.initialize(annotation);
     }
 
@@ -55,27 +57,21 @@ class EnumValidValidatorTest {
     class ValoresInvalidos {
 
         @Test
-        @DisplayName("'Oficina' → lanza InvalidEnumValueException")
-        void testValorInvalidoLanzaExcepcion() {
-            assertThrows(InvalidEnumValueException.class, () ->
-                    validator.isValid("Oficina", context)
-            );
+        @DisplayName("'Oficina' → retorna false")
+        void testValorInvalidoRetornaFalse() {
+            assertFalse(validator.isValid("Oficina", context));
         }
 
         @Test
-        @DisplayName("'casa' (minúscula) → lanza InvalidEnumValueException (case-sensitive)")
+        @DisplayName("'casa' (minúscula) → retorna false (case-sensitive)")
         void testValorInvalidoCaseSensitive() {
-            assertThrows(InvalidEnumValueException.class, () ->
-                    validator.isValid("casa", context)
-            );
+            assertFalse(validator.isValid("casa", context));
         }
 
         @Test
-        @DisplayName("'Local Comercial' → lanza InvalidEnumValueException")
+        @DisplayName("'Local Comercial' → retorna false")
         void testValorInvalidoCompuesto() {
-            assertThrows(InvalidEnumValueException.class, () ->
-                    validator.isValid("Local Comercial", context)
-            );
+            assertFalse(validator.isValid("Local Comercial", context));
         }
     }
 
@@ -103,18 +99,15 @@ class EnumValidValidatorTest {
     }
 
     @Nested
-    @DisplayName("Mensaje de excepción")
-    class MensajeExcepcion {
+    @DisplayName("Constraint violation")
+    class ConstraintViolation {
 
         @Test
-        @DisplayName("La excepción contiene el valor inválido y la lista de permitidos")
-        void testMensajeContieneInfo() {
-            var ex = assertThrows(InvalidEnumValueException.class, () ->
-                    validator.isValid("Oficina", context)
-            );
-
-            assertTrue(ex.getMessage().contains("Oficina"));
-            assertTrue(ex.getMessage().contains("no está en la lista de valores permitidos"));
+        @DisplayName("Valor inválido → deshabilita mensaje por defecto y agrega violation con mensaje custom")
+        void testMensajeCustom() {
+            assertFalse(validator.isValid("Oficina", context));
+            org.mockito.Mockito.verify(context).disableDefaultConstraintViolation();
+            org.mockito.Mockito.verify(context).buildConstraintViolationWithTemplate("tipo_inmueble debe ser Casa, Apartamento o Local");
         }
     }
 }

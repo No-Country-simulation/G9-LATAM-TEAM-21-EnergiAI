@@ -1,6 +1,5 @@
 package com.hackathon.energia.validation;
 
-import com.hackathon.energia.exception.InvalidEnumValueException;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -11,11 +10,12 @@ import java.util.stream.Collectors;
 public class EnumValidValidator implements ConstraintValidator<EnumValid, String> {
 
     private Set<String> valoresPermitidos;
-    private String fieldName;
+    private String message;
 
     @Override
     public void initialize(EnumValid constraintAnnotation) {
         valoresPermitidos = Arrays.stream(constraintAnnotation.values()).collect(Collectors.toSet());
+        message = constraintAnnotation.message();
     }
 
     @Override
@@ -24,10 +24,10 @@ public class EnumValidValidator implements ConstraintValidator<EnumValid, String
             return true;
         }
         if (!valoresPermitidos.contains(value)) {
-            throw new InvalidEnumValueException(
-                    String.format("Valor '%s' no está en la lista de valores permitidos: %s",
-                            value, String.join(", ", valoresPermitidos))
-            );
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(message)
+                    .addConstraintViolation();
+            return false;
         }
         return true;
     }

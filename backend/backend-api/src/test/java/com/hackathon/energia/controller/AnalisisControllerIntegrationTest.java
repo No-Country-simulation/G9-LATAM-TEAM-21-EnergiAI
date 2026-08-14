@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -35,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 classes = {com.hackathon.energia.security.SecurityConfig.class, com.hackathon.energia.security.SecurityFilter.class}
         )
 )
+@Import(com.hackathon.energia.exception.GlobalExceptionHandler.class)
 @AutoConfigureMockMvc(addFilters = false)
 class AnalisisControllerIntegrationTest {
 
@@ -208,7 +210,7 @@ class AnalisisControllerIntegrationTest {
     class EnumInvalido {
 
         @Test
-        @DisplayName("tipo_inmueble='Oficina' → 400 BAD_REQUEST (validación en controller)")
+        @DisplayName("tipo_inmueble='Oficina' → 400 BAD_REQUEST")
         void testTipoInmuebleInvalido() throws Exception {
             var datos = new DatosRegistroAnalisis(
                     420.0,
@@ -238,7 +240,7 @@ class AnalisisControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("region_pais='AR-BuenosAires' → 400 BAD_REQUEST (validación en controller)")
+        @DisplayName("region_pais='AR-BuenosAires' → 400 BAD_REQUEST")
         void testRegionPaisInvalido() throws Exception {
             var datos = new DatosRegistroAnalisis(
                     420.0,
