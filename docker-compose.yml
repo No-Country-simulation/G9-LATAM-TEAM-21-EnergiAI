@@ -48,6 +48,7 @@ services:
       DB_USER: ${DB_USER:-root}
       DB_PASSWORD: ${DB_PASSWORD:-energia2024}
       URL_MODELO: ${URL_MODELO:-http://ia-service:8000/analisis-energetico}
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
     depends_on:
       mysql:
         condition: service_healthy
