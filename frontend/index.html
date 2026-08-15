@@ -784,11 +784,13 @@
                         </div>
                     </div>
                     <button class="btn-primary" onclick="login()">Iniciar Sesión</button>
-                    <button class="btn-register" onclick="registrarUsuario()">📝 Registrarse</button>
+                    <button class="btn-register" onclick="mostrarRegistro()">📝 Registrarse</button>
+                    <button class="btn-secondary" onclick="analizarComoInvitado()" style="margin-top: 0.5rem;">🔓 Analizar sin registrarse</button>
                     
-                    <div class="login-users" id="usuariosGuardados">
-                        <h4>👥 Usuarios registrados:</h4>
-                        <div class="user-avatars" id="userAvatars"></div>
+                    <div id="formRegistro" style="display: none; margin-top: 1rem; padding: 1rem; background: #f8f9fc; border-radius: 12px;">
+                        <h4 style="margin-bottom: 0.5rem;">📝 Crear cuenta</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">Regístrate para guardar tu historial y análisis futuros</p>
+                        <button class="btn-register" onclick="registrarUsuario()">Confirmar registro</button>
                     </div>
                 </div>
             </div>
@@ -969,41 +971,27 @@
         </div>
     </div>
 
-    <!-- Modal para confirmar eliminación -->
-    <div class="modal-overlay" id="deleteModal">
-        <div class="modal-box">
-            <h3>⚠️ Confirmar eliminación</h3>
-            <p id="deleteModalMessage">¿Estás seguro de que quieres eliminar este usuario?</p>
-            <div class="form-group">
-                <label for="deletePassword">Ingresa tu contraseña para confirmar:</label>
-                <div class="password-wrapper">
-                    <input type="password" id="deletePassword" placeholder="Tu contraseña">
-                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility('deletePassword')">
-                        👁️
-                    </button>
-                </div>
-                <div class="error-message" id="deleteError">❌ Contraseña incorrecta</div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-cancel" onclick="cerrarModalEliminar()">Cancelar</button>
-                <button class="btn-confirm" onclick="confirmarEliminar()">Eliminar</button>
-            </div>
-        </div>
-    </div>
+    <!-- Modal eliminado - autenticación ahora con backend -->
 
     <script>
         // ============================================
         // CONFIGURACIÓN Y ESTADO GLOBAL
         // ============================================
 
+        const API_BASE_URL = '/api';
+        
         const APP_STATE = {
             usuarioActual: null,
             rol: null,
+            token: null,
+            refreshToken: null,
             historial: [],
             chartInstance: null,
             pasoActual: 1,
             totalPasos: 5,
-            usuarioAEliminar: null
+            usuarioAEliminar: null,
+            ultimoResultado: null,
+            esInvitado: false
         };
 
         // ============================================
@@ -1025,15 +1013,160 @@
         }
 
         // ============================================
-        // GESTIÓN DE USUARIOS
+        // FUNCIONES DE API
         // ============================================
 
-        function getUsuarios() {
-            return JSON.parse(localStorage.getItem('ecoUsers') || '[]');
+        async function apiRequest(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            };
+
+            if (APP_STATE.token) {
+                config.headers['Authorization'] = `Bearer ${APP_STATE.token}`;
+            }
+
+            try {
+                const response = await fetch(url, config);
+                const data = await response.json().catch(() => null);
+
+                if (!response.ok) {
+                    return {
+                        success: false,
+                        status: response.status,
+                        error: data?.error || data?.detalle || 'Error desconocido',
+                        detalles: data?.detalles || null
+                    };
+                }
+
+                return { success: true, data };
+            } catch (error) {
+                return {
+                    success: false,
+                    status: 0,
+                    error: 'Error de conexión con el servidor',
+                    detalles: null
+                };
+            }
         }
 
-        function saveUsuarios(usuarios) {
-            localStorage.setItem('ecoUsers', JSON.stringify(usuarios));
+        async function registrarUsuarioAPI(login, password) {
+            return apiRequest('/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ login, password })
+            });
+        }
+
+        async function loginAPI(login, password) {
+            return apiRequest('/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ login, password })
+            });
+        }
+
+        async function enviarAnalisis(payload) {
+            return apiRequest('/analise-energetica', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+        }
+
+        async function obtenerHistorialAPI() {
+            if (!APP_STATE.token) return { success: false, data: [] };
+            return apiRequest('/analise-energetica/historial');
+        }
+
+        function guardarSesion(token, refreshToken, login) {
+            APP_STATE.token = token;
+            APP_STATE.refreshToken = refreshToken;
+            APP_STATE.usuarioActual = login;
+            localStorage.setItem('token', token);
+            localStorage.setItem('refreshToken', refreshToken);
+            localStorage.setItem('usuarioActual', login);
+        }
+
+        function cargarSesion() {
+            const token = localStorage.getItem('token');
+            const refreshToken = localStorage.getItem('refreshToken');
+            const usuario = localStorage.getItem('usuarioActual');
+            if (token && refreshToken && usuario) {
+                APP_STATE.token = token;
+                APP_STATE.refreshToken = refreshToken;
+                APP_STATE.usuarioActual = usuario;
+                return true;
+            }
+            return false;
+        }
+
+        function cerrarSesion() {
+            APP_STATE.token = null;
+            APP_STATE.refreshToken = null;
+            APP_STATE.usuarioActual = null;
+            APP_STATE.esInvitado = false;
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('usuarioActual');
+        }
+
+        // ============================================
+        // GESTIÓN DE USUARIOS (Solo UI)
+        // ============================================
+
+        function mostrarRegistro() {
+            const formRegistro = document.getElementById('formRegistro');
+            if (formRegistro) {
+                formRegistro.style.display = formRegistro.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function analizarComoInvitado() {
+            const username = document.getElementById('username').value.trim();
+            APP_STATE.esInvitado = true;
+            APP_STATE.usuarioActual = username || 'Invitado';
+            APP_STATE.rol = APP_STATE.rol || 'usuario';
+            
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('mainSection').style.display = 'block';
+            document.getElementById('userNameDisplay').textContent = `🔓 ${APP_STATE.usuarioActual} (Invitado)`;
+            
+            const rolNombre = APP_STATE.rol === 'usuario' ? 'Usuario' : 'Técnico';
+            document.getElementById('userRoleDisplay').textContent = `Rol: ${rolNombre}`;
+            document.getElementById('userModeDisplay').textContent = 'Modo: Invitado';
+            
+            document.getElementById('tabJson').style.display = 'none';
+            document.body.classList.remove('teaching-mode');
+            
+            cargarFormulario();
+            mostrarBienvenidaInvitado();
+        }
+
+        function mostrarBienvenidaInvitado() {
+            const banner = document.createElement('div');
+            banner.style.cssText = `
+                background: #fff3cd;
+                color: #856404;
+                padding: 1rem;
+                border-radius: 12px;
+                margin-bottom: 1rem;
+                text-align: center;
+                font-weight: 500;
+            `;
+            banner.innerHTML = '🔓 <strong>Modo Invitado:</strong> Puedes realizar análisis sin registrarte. Para guardar historial y ver tendencias, <a href="#" onclick="cerrarSesionYMostrarLogin()" style="color: #0056b3;">inicia sesión</a> o regístrate.';
+            banner.className = 'bienvenida-banner';
+            
+            const formCard = document.getElementById('formCard');
+            const existing = formCard.querySelector('.bienvenida-banner');
+            if (existing) existing.remove();
+            formCard.insertBefore(banner, formCard.firstChild);
+        }
+
+        function cerrarSesionYMostrarLogin() {
+            cerrarSesion();
+            logout();
         }
 
         function seleccionarRol(rol) {
@@ -1041,11 +1174,10 @@
             document.getElementById('roleUsuario').classList.toggle('selected', rol === 'usuario');
             document.getElementById('roleTecnico').classList.toggle('selected', rol === 'tecnico');
             document.getElementById('formLogin').style.display = 'block';
-            mostrarUsuariosGuardados();
             document.getElementById('username').focus();
         }
 
-        function registrarUsuario() {
+        async function registrarUsuario() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             
@@ -1069,146 +1201,33 @@
                 return;
             }
             
-            const usuarios = getUsuarios();
+            const result = await registrarUsuarioAPI(username, password);
             
-            if (usuarios.find(u => u.username === username)) {
-                alert('⚠️ Este usuario ya existe. Por favor elige otro nombre.');
-                return;
-            }
-            
-            if (usuarios.length >= 3) {
-                alert('⚠️ Solo se permiten 3 usuarios registrados. Elimina uno para registrar nuevo.');
-                return;
-            }
-            
-            usuarios.push({ username, password, rol: APP_STATE.rol, fechaRegistro: new Date().toISOString() });
-            saveUsuarios(usuarios);
-            mostrarUsuariosGuardados();
-            
-            // Limpiar campos
-            document.getElementById('password').value = '';
-            
-            if (confirm(`✅ Usuario "${username}" registrado como ${APP_STATE.rol === 'usuario' ? '👤 Usuario' : '🔧 Técnico'}.\n\n¿Deseas iniciar sesión ahora?`)) {
-                login();
-            } else {
+            if (result.success) {
+                alert(`✅ Usuario "${username}" registrado correctamente.\n\nAhora puedes iniciar sesión.`);
+                document.getElementById('formRegistro').style.display = 'none';
+                document.getElementById('password').value = '';
                 document.getElementById('password').focus();
-            }
-        }
-
-        function mostrarUsuariosGuardados() {
-            const usuarios = getUsuarios();
-            const container = document.getElementById('userAvatars');
-            container.innerHTML = '';
-            
-            if (usuarios.length === 0) {
-                container.innerHTML = '<p style="color: #999; font-size: 0.9rem;">No hay usuarios registrados aún</p>';
-                return;
-            }
-            
-            usuarios.forEach((user, index) => {
-                const div = document.createElement('div');
-                div.className = 'user-avatar';
-                const icon = user.rol === 'usuario' ? '👤' : '🔧';
-                div.innerHTML = `${icon} ${user.username} <span class="remove-user" onclick="event.stopPropagation(); abrirModalEliminar(${index})">✕</span>`;
-                div.onclick = function(e) {
-                    if (!e.target.classList.contains('remove-user')) {
-                        document.getElementById('username').value = user.username;
-                        document.getElementById('password').value = '';
-                        document.getElementById('password').type = 'password';
-                        const btn = document.querySelector('#password').parentElement.querySelector('.toggle-password');
-                        if (btn) btn.textContent = '👁️';
-                        APP_STATE.rol = user.rol;
-                        seleccionarRol(user.rol);
-                        document.getElementById('password').focus();
-                    }
-                };
-                container.appendChild(div);
-            });
-        }
-
-        // ============================================
-        // MODAL DE ELIMINACIÓN CON CONTRASEÑA
-        // ============================================
-
-        function abrirModalEliminar(index) {
-            const usuarios = getUsuarios();
-            const user = usuarios[index];
-            if (!user) return;
-            
-            APP_STATE.usuarioAEliminar = index;
-            document.getElementById('deleteModalMessage').textContent = 
-                `¿Estás seguro de que quieres eliminar al usuario "${user.username}" (${user.rol === 'usuario' ? '👤 Usuario' : '🔧 Técnico'})?`;
-            document.getElementById('deletePassword').value = '';
-            document.getElementById('deletePassword').type = 'password';
-            const btn = document.querySelector('#deletePassword').parentElement.querySelector('.toggle-password');
-            if (btn) btn.textContent = '👁️';
-            document.getElementById('deleteError').classList.remove('show');
-            document.getElementById('deleteModal').classList.add('active');
-            
-            setTimeout(() => document.getElementById('deletePassword').focus(), 100);
-            
-            document.getElementById('deletePassword').onkeypress = function(e) {
-                if (e.key === 'Enter') {
-                    confirmarEliminar();
-                }
-            };
-        }
-
-        function cerrarModalEliminar() {
-            document.getElementById('deleteModal').classList.remove('active');
-            APP_STATE.usuarioAEliminar = null;
-            document.getElementById('deletePassword').value = '';
-            document.getElementById('deleteError').classList.remove('show');
-        }
-
-        function confirmarEliminar() {
-            const password = document.getElementById('deletePassword').value.trim();
-            const index = APP_STATE.usuarioAEliminar;
-            
-            if (index === null || index === undefined) {
-                cerrarModalEliminar();
-                return;
-            }
-            
-            const usuarios = getUsuarios();
-            const user = usuarios[index];
-            
-            if (!user) {
-                cerrarModalEliminar();
-                return;
-            }
-            
-            if (password !== user.password) {
-                document.getElementById('deleteError').classList.add('show');
-                document.getElementById('deletePassword').value = '';
-                document.getElementById('deletePassword').focus();
-                return;
-            }
-            
-            usuarios.splice(index, 1);
-            saveUsuarios(usuarios);
-            mostrarUsuariosGuardados();
-            cerrarModalEliminar();
-            
-            if (APP_STATE.usuarioActual === user.username) {
-                alert('👋 Has eliminado tu usuario. Cerrando sesión...');
-                logout();
             } else {
-                alert(`✅ Usuario "${user.username}" eliminado correctamente.`);
+                if (result.status === 409) {
+                    alert('⚠️ Este usuario ya existe. Por favor elige otro nombre.');
+                } else {
+                    alert(`❌ Error al registrar: ${result.error}`);
+                }
             }
         }
 
-        document.getElementById('deleteModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                cerrarModalEliminar();
-            }
-        });
+        // ============================================
+        // MODAL DE ELIMINACIÓN (No usado con backend)
+        // ============================================
+
+        // Modal eliminado - autenticación ahora con backend
 
         // ============================================
         // AUTENTICACIÓN
         // ============================================
 
-        function login() {
+        async function login() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             
@@ -1222,12 +1241,13 @@
                 return;
             }
             
-            const usuarios = getUsuarios();
-            const user = usuarios.find(u => u.username === username && u.password === password);
+            const result = await loginAPI(username, password);
             
-            if (user) {
-                APP_STATE.usuarioActual = username;
-                APP_STATE.rol = user.rol || APP_STATE.rol;
+            if (result.success) {
+                const { access_token, refresh_token } = result.data;
+                guardarSesion(access_token, refresh_token, username);
+                APP_STATE.rol = APP_STATE.rol || 'usuario';
+                APP_STATE.esInvitado = false;
                 
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('mainSection').style.display = 'block';
@@ -1251,13 +1271,17 @@
                 const btn = document.querySelector('#password').parentElement.querySelector('.toggle-password');
                 if (btn) btn.textContent = '👁️';
                 
-                cargarHistorialUsuario(username);
+                await cargarHistorialDesdeAPI();
                 iniciarRecomendaciones();
                 actualizarStats();
                 cargarFormulario();
                 mostrarBienvenida();
             } else {
-                alert('❌ Usuario o contraseña incorrectos');
+                if (result.status === 401 || result.status === 403) {
+                    alert('❌ Usuario o contraseña incorrectos');
+                } else {
+                    alert(`❌ Error al iniciar sesión: ${result.error}`);
+                }
                 document.getElementById('password').value = '';
                 document.getElementById('password').type = 'password';
                 const btn = document.querySelector('#password').parentElement.querySelector('.toggle-password');
@@ -1267,7 +1291,9 @@
         }
 
         function logout() {
-            APP_STATE.usuarioActual = null;
+            cerrarSesion();
+            APP_STATE.historial = [];
+            APP_STATE.ultimoResultado = null;
             document.getElementById('loginSection').style.display = 'block';
             document.getElementById('mainSection').style.display = 'none';
             document.getElementById('username').value = '';
@@ -1276,12 +1302,12 @@
             const btn = document.querySelector('#password').parentElement.querySelector('.toggle-password');
             if (btn) btn.textContent = '👁️';
             document.getElementById('formLogin').style.display = 'none';
+            document.getElementById('formRegistro').style.display = 'none';
             document.getElementById('roleUsuario').classList.remove('selected');
             document.getElementById('roleTecnico').classList.remove('selected');
             APP_STATE.rol = null;
             document.body.classList.remove('teaching-mode');
             document.getElementById('username').focus();
-            mostrarUsuariosGuardados();
         }
 
         function mostrarBienvenida() {
@@ -1337,65 +1363,52 @@
 
                 <form id="consumoForm">
                     <div class="step-content active" data-step="1">
-                        <h4>👤 Paso 1: Datos Personales</h4>
-                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> Tus datos personales son fáciles de recordar. La ubicación la puedes obtener con el botón "Obtener ubicación".</div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Nombre Completo <span class="tooltip-trigger">?<span class="tooltip-content">Tu nombre completo para identificar tus registros.</span></span></label>
-                                <input type="text" id="nombre" placeholder="Ej: Juan Pérez" required>
-                                <div class="help-text">📌 Ingresa tu nombre tal como quieres que aparezca en tus reportes.</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Dirección <span class="tooltip-trigger">?<span class="tooltip-content">La dirección de tu vivienda o negocio.</span></span></label>
-                                <input type="text" id="direccion" placeholder="Ej: Calle Principal #123">
-                                <div class="help-text">📌 Opcional, pero útil para referencia.</div>
-                            </div>
-                        </div>
+                        <h4>📍 Paso 1: Ubicación</h4>
+                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> La ubicación se usa para consultar el clima actual y darte recomendaciones más precisas.</div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Latitud <span class="tooltip-trigger">?<span class="tooltip-content">Coordenada de latitud para información climática.</span></span></label>
-                                <input type="number" id="latitud" step="any" placeholder="Ej: -33.4567">
+                                <input type="number" id="latitud" step="any" placeholder="Ej: 4.7110" required>
                                 <div class="help-text">📍 Usa el botón "Obtener ubicación" para llenar automáticamente.</div>
                             </div>
                             <div class="form-group">
                                 <label>Longitud <span class="tooltip-trigger">?<span class="tooltip-content">Coordenada de longitud para información climática.</span></span></label>
-                                <input type="number" id="longitud" step="any" placeholder="Ej: -70.1234">
+                                <input type="number" id="longitud" step="any" placeholder="Ej: -74.0721" required>
                                 <div class="help-text">📍 Usa el botón "Obtener ubicación" para llenar automáticamente.</div>
                             </div>
+                        </div>
+                        <div class="form-row">
                             <div class="form-group" style="flex: 1; display: flex; align-items: flex-end;">
-                                <button type="button" class="btn-secondary" onclick="obtenerUbicacion()" style="width: 100%;">📍 Obtener ubicación</button>
+                                <button type="button" class="btn-secondary" onclick="obtenerUbicacion()" style="width: 100%;">📍 Obtener ubicación actual</button>
                             </div>
                         </div>
                     </div>
 
                     <div class="step-content" data-step="2">
-                        <h4>📏 Paso 2: Consumo y Espacio</h4>
+                        <h4>⚡ Paso 2: Consumo y Espacio</h4>
                         <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> El consumo lo encuentras en tu <strong>factura de electricidad</strong>. La superficie la puedes medir o revisar en los planos de tu vivienda.</div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>1. Consumo kWh <span class="tooltip-trigger">?<span class="tooltip-content">Consumo total de energía en kilovatios-hora. Lo encuentras en tu factura eléctrica.</span></span></label>
-                                <input type="number" id="consumo_kwh" step="0.01" placeholder="Ej: 250" required>
+                                <label>Consumo (kWh) <span class="tooltip-trigger">?<span class="tooltip-content">Consumo total de energía en kilovatios-hora. Lo encuentras en tu factura eléctrica.</span></span></label>
+                                <input type="number" id="consumo_kwh" step="0.01" placeholder="Ej: 420" required>
                                 <div class="help-text">📄 Busca en tu factura el consumo mensual en kWh.</div>
                             </div>
                             <div class="form-group">
-                                <label>4. Superficie (m²) <span class="tooltip-trigger">?<span class="tooltip-content">Área total de tu vivienda o negocio en metros cuadrados.</span></span></label>
-                                <input type="number" id="superficie_m2" step="0.01" placeholder="Ej: 120" required>
+                                <label>Superficie (m²) <span class="tooltip-trigger">?<span class="tooltip-content">Área total de tu vivienda o negocio en metros cuadrados.</span></span></label>
+                                <input type="number" id="superficie_m2" step="0.01" placeholder="Ej: 80" required>
                                 <div class="help-text">📐 Revisa los planos de tu propiedad o mide el área.</div>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>10. Capacidad solar (kWp) <span class="tooltip-trigger">?<span class="tooltip-content">Capacidad instalada de paneles solares en kilovatios pico.</span></span></label>
-                                <input type="number" id="capacidad_solar_kwp" step="0.01" placeholder="Ej: 3.5">
-                                <div class="help-text">☀️ Si no tienes paneles solares, deja en 0.</div>
+                                <label>Habitantes/Ocupantes <span class="tooltip-trigger">?<span class="tooltip-content">Número de personas que viven en la vivienda.</span></span></label>
+                                <input type="number" id="habitantes_ocupantes" placeholder="Ej: 4" required min="1">
+                                <div class="help-text">👥 Cantidad de personas que habitan el inmueble.</div>
                             </div>
                             <div class="form-group">
-                                <label>13. Tiene paneles solares <span class="tooltip-trigger">?<span class="tooltip-content">Indica si tu propiedad cuenta con paneles solares.</span></span></label>
-                                <select id="tiene_paneles_solares" required>
-                                    <option value="true">Sí</option>
-                                    <option value="false">No</option>
-                                </select>
-                                <div class="help-text">☀️ Selecciona "Sí" si tienes paneles solares instalados.</div>
+                                <label>Capacidad solar (kWp) <span class="tooltip-trigger">?<span class="tooltip-content">Capacidad instalada de paneles solares en kilovatios pico.</span></span></label>
+                                <input type="number" id="capacidad_solar_kwp" step="0.01" placeholder="Ej: 0" value="0">
+                                <div class="help-text">☀️ Si no tienes paneles solares, deja en 0.</div>
                             </div>
                         </div>
                     </div>
@@ -1405,57 +1418,60 @@
                         <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> Cuenta los equipos eléctricos que tienes. Las horas de alto consumo son los momentos del día donde más energía usas.</div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>2. Cantidad de equipos <span class="tooltip-trigger">?<span class="tooltip-content">Número total de equipos eléctricos en tu hogar o negocio.</span></span></label>
-                                <input type="number" id="cantidad_equipos" placeholder="Ej: 15" required>
+                                <label>Cantidad de equipos <span class="tooltip-trigger">?<span class="tooltip-content">Número total de equipos eléctricos en tu hogar o negocio.</span></span></label>
+                                <input type="number" id="cantidad_equipos" placeholder="Ej: 10" required min="0">
                                 <div class="help-text">🔌 Cuenta todos los electrodomésticos y equipos electrónicos.</div>
                             </div>
                             <div class="form-group">
-                                <label>5. Cantidad de A/C <span class="tooltip-trigger">?<span class="tooltip-content">Número de aires acondicionados que tienes instalados.</span></span></label>
-                                <input type="number" id="aires_acondicionados" placeholder="Ej: 2" required>
-                                <div class="help-text">❄️ Cuenta todos los equipos de aire acondicionado.</div>
+                                <label>Horas alto consumo <span class="tooltip-trigger">?<span class="tooltip-content">Horas al día en las que más energía consumes.</span></span></label>
+                                <input type="number" id="horas_alto_consumo" placeholder="Ej: 8" required min="0" max="24">
+                                <div class="help-text">⏰ Ejemplo: si usas muchos equipos de 6pm a 10pm, son 4 horas.</div>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>3. Horas alto consumo <span class="tooltip-trigger">?<span class="tooltip-content">Horas al día en las que más energía consumes.</span></span></label>
-                                <input type="number" id="horas_alto_consumo" placeholder="Ej: 4" required>
-                                <div class="help-text">⏰ Ejemplo: si usas muchos equipos de 6pm a 10pm, son 4 horas.</div>
-                            </div>
-                            <div class="form-group">
-                                <label>12. Uso horario pico <span class="tooltip-trigger">?<span class="tooltip-content">Indica si tu consumo principal ocurre en horas de mayor demanda.</span></span></label>
+                                <label>Uso horario pico <span class="tooltip-trigger">?<span class="tooltip-content">Indica si tu consumo principal ocurre en horas de mayor demanda.</span></span></label>
                                 <select id="uso_horario_pico" required>
                                     <option value="true">Sí</option>
                                     <option value="false">No</option>
                                 </select>
                                 <div class="help-text">⏰ Las horas pico suelen ser de 6pm a 10pm.</div>
                             </div>
+                            <div class="form-group">
+                                <label>Tiene paneles solares <span class="tooltip-trigger">?<span class="tooltip-content">Indica si tu propiedad cuenta con paneles solares.</span></span></label>
+                                <select id="tiene_paneles_solares" required>
+                                    <option value="false">No</option>
+                                    <option value="true">Sí</option>
+                                </select>
+                                <div class="help-text">☀️ Selecciona "Sí" si tienes paneles solares instalados.</div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="step-content" data-step="4">
                         <h4>💡 Paso 4: Eficiencia y Tecnología</h4>
-                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> El factor de potencia está en las especificaciones técnicas de tus equipos. El % LED lo puedes calcular viendo cuántas lámparas LED tienes vs las totales.</div>
+                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> El factor de potencia está en las especificaciones técnicas de tus equipos. Los porcentajes se ingresan como fracción (ej: 0.60 = 60%).</div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>6. Factor de potencia <span class="tooltip-trigger">?<span class="tooltip-content">Indica la eficiencia eléctrica. Entre 0.7 y 1.0.</span></span></label>
-                                <input type="number" id="factor_potencia" step="0.01" placeholder="Ej: 0.95" required>
-                                <div class="help-text">⚡ Valor entre 0.7 y 1.0. 0.95 es excelente.</div>
+                                <label>Factor de potencia <span class="tooltip-trigger">?<span class="tooltip-content">Indica la eficiencia eléctrica. Entre 0.7 y 1.0.</span></span></label>
+                                <input type="number" id="factor_potencia" step="0.01" placeholder="Ej: 0.92" required min="0.01" max="1">
+                                <div class="help-text">⚡ Valor entre 0.01 y 1.0. 0.92 es excelente.</div>
                             </div>
                             <div class="form-group">
-                                <label>7. % Iluminación LED <span class="tooltip-trigger">?<span class="tooltip-content">Porcentaje de luminarias LED vs tradicionales.</span></span></label>
-                                <input type="number" id="pct_iluminacion_led" placeholder="Ej: 80" required>
-                                <div class="help-text">💡 Ejemplo: 80% significa que 8 de cada 10 lámparas son LED.</div>
+                                <label>% Iluminación LED (fracción) <span class="tooltip-trigger">?<span class="tooltip-content">Porcentaje de luminarias LED como fracción (0-1).</span></span></label>
+                                <input type="number" id="porcentaje_iluminacion_led" step="0.01" placeholder="Ej: 0.60" required min="0" max="1">
+                                <div class="help-text">💡 Ejemplo: 0.60 significa que 60% son LED.</div>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>8. % Equipos inteligentes <span class="tooltip-trigger">?<span class="tooltip-content">Porcentaje de equipos con tecnología inteligente.</span></span></label>
-                                <input type="number" id="pct_equipos_inteligentes" placeholder="Ej: 40" required>
-                                <div class="help-text">🤖 Ejemplo: termostatos inteligentes, enchufes WiFi, etc.</div>
+                                <label>% Equipos inteligentes (fracción) <span class="tooltip-trigger">?<span class="tooltip-content">Porcentaje de equipos inteligentes como fracción (0-1).</span></span></label>
+                                <input type="number" id="porcentaje_equipos_inteligentes" step="0.01" placeholder="Ej: 0.30" required min="0" max="1">
+                                <div class="help-text">🤖 Ejemplo: 0.30 significa que 30% son inteligentes.</div>
                             </div>
                             <div class="form-group">
-                                <label>9. Antigüedad promedio ponderada <span class="tooltip-trigger">?<span class="tooltip-content">Edad promedio de tus equipos en años.</span></span></label>
-                                <input type="number" id="antiguedad_promedio_ponderada" step="0.1" placeholder="Ej: 5.5" required>
+                                <label>Antigüedad promedio (años) <span class="tooltip-trigger">?<span class="tooltip-content">Edad promedio de tus equipos en años.</span></span></label>
+                                <input type="number" id="antiguedad_promedio_ponderada" step="0.1" placeholder="Ej: 6.5" required min="0">
                                 <div class="help-text">📅 Calcula el promedio de años de tus equipos principales.</div>
                             </div>
                         </div>
@@ -1463,27 +1479,26 @@
 
                     <div class="step-content" data-step="5">
                         <h4>🏷️ Paso 5: Categorías y Finalización</h4>
-                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> El tipo de inmueble es según el uso principal de tu propiedad. La región es la zona geográfica donde vives.</div>
+                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> El tipo de inmueble es según el uso principal de tu propiedad. La región es la ciudad/país donde vives.</div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>14. Tipo de inmueble <span class="tooltip-trigger">?<span class="tooltip-content">Clasifica tu propiedad según su uso principal.</span></span></label>
+                                <label>Tipo de inmueble <span class="tooltip-trigger">?<span class="tooltip-content">Clasifica tu propiedad según su uso principal.</span></span></label>
                                 <select id="tipo_inmueble" required>
-                                    <option value="Residencial">Residencial</option>
-                                    <option value="Comercial">Comercial</option>
-                                    <option value="Industrial">Industrial</option>
+                                    <option value="Casa">Casa</option>
+                                    <option value="Apartamento">Apartamento</option>
+                                    <option value="Local">Local</option>
                                 </select>
                                 <div class="help-text">🏠 Selecciona según el uso principal de tu propiedad.</div>
                             </div>
                             <div class="form-group">
-                                <label>15. Región <span class="tooltip-trigger">?<span class="tooltip-content">Región geográfica donde se encuentra tu propiedad.</span></span></label>
+                                <label>Región/País <span class="tooltip-trigger">?<span class="tooltip-content">Ciudad/país donde se encuentra tu propiedad.</span></span></label>
                                 <select id="region_pais" required>
-                                    <option value="Norte">Norte</option>
-                                    <option value="Centro">Centro</option>
-                                    <option value="Sur">Sur</option>
-                                    <option value="Oriente">Oriente</option>
-                                    <option value="Occidente">Occidente</option>
+                                    <option value="CO-Bogota">CO - Bogotá</option>
+                                    <option value="CO-Medellin">CO - Medellín</option>
+                                    <option value="MX-CDMX">MX - Ciudad de México</option>
+                                    <option value="BR-Brasilia">BR - Brasilia</option>
                                 </select>
-                                <div class="help-text">📍 Selecciona la región donde vives.</div>
+                                <div class="help-text">📍 Selecciona la ciudad/región donde vives.</div>
                             </div>
                         </div>
                         <div style="background: #f8f9fc; padding: 1rem; border-radius: 12px; margin-top: 1rem;">
@@ -1495,7 +1510,7 @@
                     <div class="step-navigation">
                         <button type="button" class="btn-prev" id="btnPrev" onclick="pasoAnterior()">⬅ Anterior</button>
                         <button type="button" class="btn-next" id="btnNext" onclick="pasoSiguiente()">Siguiente ➡</button>
-                        <button type="button" class="btn-submit" id="btnSubmit" style="display: none;" onclick="guardarAnalisis()">💾 Guardar Análisis</button>
+                        <button type="button" class="btn-submit" id="btnSubmit" style="display: none;" onclick="guardarAnalisis()">🔍 Analizar</button>
                     </div>
                 </form>
             `;
@@ -1505,63 +1520,58 @@
             return `
                 <form id="consumoFormTecnico">
                     <div class="form-row">
-                        <div class="form-group"><label>Nombre Completo</label><input type="text" id="nombre" placeholder="Ej: Juan Pérez" required></div>
-                        <div class="form-group"><label>Dirección</label><input type="text" id="direccion" placeholder="Ej: Calle Principal #123"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Latitud</label><input type="number" id="latitud" step="any" placeholder="Ej: -33.4567"></div>
-                        <div class="form-group"><label>Longitud</label><input type="number" id="longitud" step="any" placeholder="Ej: -70.1234"></div>
+                        <div class="form-group"><label>Latitud</label><input type="number" id="latitud" step="any" placeholder="Ej: 4.7110" required></div>
+                        <div class="form-group"><label>Longitud</label><input type="number" id="longitud" step="any" placeholder="Ej: -74.0721" required></div>
                         <div class="form-group" style="flex: 1; display: flex; align-items: flex-end;">
                             <button type="button" class="btn-secondary" onclick="obtenerUbicacion()" style="width: 100%;">📍 Obtener ubicación</button>
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>1. Consumo kWh</label><input type="number" id="consumo_kwh" step="0.01" placeholder="Ej: 250" required></div>
-                        <div class="form-group"><label>2. Cantidad de equipos</label><input type="number" id="cantidad_equipos" placeholder="Ej: 15" required></div>
+                        <div class="form-group"><label>Consumo (kWh)</label><input type="number" id="consumo_kwh" step="0.01" placeholder="Ej: 420" required></div>
+                        <div class="form-group"><label>Superficie (m²)</label><input type="number" id="superficie_m2" step="0.01" placeholder="Ej: 80" required></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>3. Horas alto consumo</label><input type="number" id="horas_alto_consumo" placeholder="Ej: 4" required></div>
-                        <div class="form-group"><label>4. Superficie (m²)</label><input type="number" id="superficie_m2" step="0.01" placeholder="Ej: 120" required></div>
+                        <div class="form-group"><label>Habitantes/Ocupantes</label><input type="number" id="habitantes_ocupantes" placeholder="Ej: 4" required min="1"></div>
+                        <div class="form-group"><label>Cantidad de equipos</label><input type="number" id="cantidad_equipos" placeholder="Ej: 10" required min="0"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>5. Cantidad de A/C</label><input type="number" id="aires_acondicionados" placeholder="Ej: 2" required></div>
-                        <div class="form-group"><label>6. Factor de potencia</label><input type="number" id="factor_potencia" step="0.01" placeholder="Ej: 0.95" required></div>
+                        <div class="form-group"><label>Horas alto consumo</label><input type="number" id="horas_alto_consumo" placeholder="Ej: 8" required min="0" max="24"></div>
+                        <div class="form-group"><label>Factor de potencia</label><input type="number" id="factor_potencia" step="0.01" placeholder="Ej: 0.92" required min="0.01" max="1"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>7. % Iluminación LED</label><input type="number" id="pct_iluminacion_led" placeholder="Ej: 80" required></div>
-                        <div class="form-group"><label>8. % Equipos inteligentes</label><input type="number" id="pct_equipos_inteligentes" placeholder="Ej: 40" required></div>
+                        <div class="form-group"><label>% Iluminación LED (fracción)</label><input type="number" id="porcentaje_iluminacion_led" step="0.01" placeholder="Ej: 0.60" required min="0" max="1"></div>
+                        <div class="form-group"><label>% Equipos inteligentes (fracción)</label><input type="number" id="porcentaje_equipos_inteligentes" step="0.01" placeholder="Ej: 0.30" required min="0" max="1"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>9. Antigüedad promedio ponderada</label><input type="number" id="antiguedad_promedio_ponderada" step="0.1" placeholder="Ej: 5.5" required></div>
-                        <div class="form-group"><label>10. Capacidad solar (kWp)</label><input type="number" id="capacidad_solar_kwp" step="0.01" placeholder="Ej: 3.5"></div>
+                        <div class="form-group"><label>Antigüedad promedio (años)</label><input type="number" id="antiguedad_promedio_ponderada" step="0.1" placeholder="Ej: 6.5" required min="0"></div>
+                        <div class="form-group"><label>Capacidad solar (kWp)</label><input type="number" id="capacidad_solar_kwp" step="0.01" placeholder="Ej: 0" value="0"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>12. Uso horario pico</label>
+                        <div class="form-group"><label>Uso horario pico</label>
                             <select id="uso_horario_pico" required><option value="true">Sí</option><option value="false">No</option></select>
                         </div>
-                        <div class="form-group"><label>13. Tiene paneles solares</label>
-                            <select id="tiene_paneles_solares" required><option value="true">Sí</option><option value="false">No</option></select>
+                        <div class="form-group"><label>Tiene paneles solares</label>
+                            <select id="tiene_paneles_solares" required><option value="false">No</option><option value="true">Sí</option></select>
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>14. Tipo de inmueble</label>
+                        <div class="form-group"><label>Tipo de inmueble</label>
                             <select id="tipo_inmueble" required>
-                                <option value="Residencial">Residencial</option>
-                                <option value="Comercial">Comercial</option>
-                                <option value="Industrial">Industrial</option>
+                                <option value="Casa">Casa</option>
+                                <option value="Apartamento">Apartamento</option>
+                                <option value="Local">Local</option>
                             </select>
                         </div>
-                        <div class="form-group"><label>15. Región</label>
+                        <div class="form-group"><label>Región/País</label>
                             <select id="region_pais" required>
-                                <option value="Norte">Norte</option>
-                                <option value="Centro">Centro</option>
-                                <option value="Sur">Sur</option>
-                                <option value="Oriente">Oriente</option>
-                                <option value="Occidente">Occidente</option>
+                                <option value="CO-Bogota">CO - Bogotá</option>
+                                <option value="CO-Medellin">CO - Medellín</option>
+                                <option value="MX-CDMX">MX - Ciudad de México</option>
+                                <option value="BR-Brasilia">BR - Brasilia</option>
                             </select>
                         </div>
                     </div>
-                    <button type="button" class="btn-primary" onclick="guardarAnalisisTecnico()">💾 Guardar Análisis</button>
+                    <button type="button" class="btn-primary" onclick="guardarAnalisisTecnico()">🔍 Analizar</button>
                 </form>
             `;
         }
@@ -1630,17 +1640,16 @@
 
         function actualizarResumenUsuario() {
             const datos = {
-                nombre: document.getElementById('nombre')?.value || 'No especificado',
                 consumo: document.getElementById('consumo_kwh')?.value || 'No especificado',
                 superficie: document.getElementById('superficie_m2')?.value || 'No especificado',
                 equipos: document.getElementById('cantidad_equipos')?.value || 'No especificado',
-                ac: document.getElementById('aires_acondicionados')?.value || 'No especificado',
+                habitantes: document.getElementById('habitantes_ocupantes')?.value || 'No especificado',
                 tipo: document.getElementById('tipo_inmueble')?.value || 'No especificado',
                 region: document.getElementById('region_pais')?.value || 'No especificado'
             };
             const resumen = document.getElementById('resumenDatos');
             if (resumen) {
-                resumen.innerHTML = `👤 <strong>Nombre:</strong> ${datos.nombre} | 🏠 <strong>Inmueble:</strong> ${datos.tipo} | 📍 <strong>Región:</strong> ${datos.region}<br>⚡ <strong>Consumo:</strong> ${datos.consumo} kWh | 📏 <strong>Superficie:</strong> ${datos.superficie} m² | 🔌 <strong>Equipos:</strong> ${datos.equipos} | ❄️ <strong>A/C:</strong> ${datos.ac}`;
+                resumen.innerHTML = `🏠 <strong>Inmueble:</strong> ${datos.tipo} | 📍 <strong>Región:</strong> ${datos.region}<br>⚡ <strong>Consumo:</strong> ${datos.consumo} kWh | 📏 <strong>Superficie:</strong> ${datos.superficie} m² | 🔌 <strong>Equipos:</strong> ${datos.equipos} | 👥 <strong>Habitantes:</strong> ${datos.habitantes}`;
             }
         }
 
@@ -1670,39 +1679,15 @@
         }
 
         function obtenerClimaPorUbicacion(lat, lon) {
-            const climas = ['Soleado', 'Nublado', 'Lluvioso', 'Caluroso', 'Frío', 'Templado'];
-            const temperaturas = [12, 18, 22, 26, 30, 34];
-            const clima = climas[Math.floor(Math.random() * climas.length)];
-            const temp = temperaturas[Math.floor(Math.random() * temperaturas.length)];
-            
-            let climaInput = document.getElementById('climaActual');
-            if (!climaInput) {
-                climaInput = document.createElement('input');
-                climaInput.type = 'hidden';
-                climaInput.id = 'climaActual';
-                const form = document.getElementById('consumoForm') || document.getElementById('consumoFormTecnico');
-                if (form) form.appendChild(climaInput);
-            }
-            climaInput.value = JSON.stringify({ clima, temperatura: temp });
-            mostrarRecomendacionClimatica(clima, temp);
-            const mensaje = `🌤️ Clima actual: ${clima} - ${temp}°C\nSe ha registrado la información climática.`;
-            alert(APP_STATE.rol === 'usuario' ? mensaje + '\n\n💡 Este dato nos ayudará a darte recomendaciones más precisas.' : mensaje);
-        }
-
-        function mostrarRecomendacionClimatica(clima, temp) {
-            let recomendacion = '';
-            if (temp > 28) recomendacion = '🔴 Alta temperatura detectada. Se recomienda optimizar el uso de aire acondicionado y mantener termostatos en 24°C.';
-            else if (temp < 12) recomendacion = '🔵 Bajas temperaturas. Revisar aislamiento térmico para reducir consumo de calefacción.';
-            else recomendacion = '✅ Temperatura moderada. Buen momento para optimizar el consumo energético.';
-            const elem = document.getElementById('climaRecomendacion');
-            if (elem) elem.textContent = recomendacion;
+            const mensaje = `📍 Ubicación obtenida: ${lat.toFixed(4)}, ${lon.toFixed(4)}\nLa información climática se consultará al realizar el análisis.`;
+            alert(APP_STATE.rol === 'usuario' ? mensaje + '\n\n💡 El clima actual se usará para darte recomendaciones más precisas.' : mensaje);
         }
 
         // ============================================
         // GUARDAR ANÁLISIS
         // ============================================
 
-        function guardarAnalisis() {
+        async function guardarAnalisis() {
             for (let i = 1; i <= APP_STATE.totalPasos; i++) {
                 if (!validarPasoUsuario(i)) {
                     APP_STATE.pasoActual = i;
@@ -1713,68 +1698,204 @@
             }
             const formData = recolectarDatosFormulario();
             if (!formData) return;
-            guardarEnHistorial(formData);
-            alert('✅ Análisis guardado exitosamente');
-            const form = document.getElementById('consumoForm');
-            if (form) form.reset();
-            resetearPasos();
-            changeTab('historial');
+            
+            await enviarAnalisisAlBackend(formData);
         }
 
-        function guardarAnalisisTecnico() {
+        async function guardarAnalisisTecnico() {
             const formData = recolectarDatosFormulario();
             if (!formData) return;
-            guardarEnHistorial(formData);
-            alert('✅ Análisis guardado exitosamente');
-            const form = document.getElementById('consumoFormTecnico');
-            if (form) form.reset();
-            changeTab('historial');
+            
+            await enviarAnalisisAlBackend(formData);
+        }
+
+        async function enviarAnalisisAlBackend(formData) {
+            const btnSubmit = document.querySelector('.btn-submit, #consumoFormTecnico .btn-primary');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = '⏳ Analizando...';
+            }
+            
+            const result = await enviarAnalisis(formData);
+            
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = '🔍 Analizar';
+            }
+            
+            if (result.success) {
+                APP_STATE.ultimoResultado = result.data;
+                
+                if (!APP_STATE.esInvitado && APP_STATE.token) {
+                    await cargarHistorialDesdeAPI();
+                }
+                
+                mostrarResultadoAnalisis(result.data);
+                changeTab('resultado');
+            } else {
+                mostrarErrorAnalisis(result);
+            }
+        }
+
+        function mostrarResultadoAnalisis(data) {
+            const resultadoContainer = document.getElementById('resultadoContainer');
+            if (!resultadoContainer) {
+                crearTabResultado();
+            }
+            
+            const categoriaEmoji = {
+                'EFICIENTE': '🟢',
+                'MODERADO': '🟡',
+                'INEFICIENTE': '🔴'
+            };
+            
+            const emoji = categoriaEmoji[data.categoria] || '⚪';
+            
+            document.getElementById('resultadoCategoria').textContent = `${emoji} ${data.categoria}`;
+            document.getElementById('resultadoProbabilidad').textContent = `${(data.probabilidad * 100).toFixed(0)}%`;
+            document.getElementById('resultadoCosto').textContent = `$${data.costo_estimado_mensual.toFixed(2)}`;
+            document.getElementById('resultadoId').textContent = data.id_analisis;
+            document.getElementById('resultadoFecha').textContent = new Date(data.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            const recomendacionesContainer = document.getElementById('resultadoRecomendaciones');
+            recomendacionesContainer.innerHTML = '';
+            
+            if (data.recomendaciones && data.recomendaciones.length > 0) {
+                data.recomendaciones.forEach((rec, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'recomendacion-item';
+                    div.innerHTML = `
+                        <div class="recomendacion-icon">${index === 0 ? '💡' : index === 1 ? '🔌' : index === 2 ? '📊' : '🌡️'}</div>
+                        <div class="recomendacion-content">
+                            <p>${rec}</p>
+                        </div>
+                    `;
+                    recomendacionesContainer.appendChild(div);
+                });
+            } else {
+                recomendacionesContainer.innerHTML = '<p>No hay recomendaciones disponibles.</p>';
+            }
+        }
+
+        function crearTabResultado() {
+            const tabsContainer = document.getElementById('tabsContainer');
+            const tabBtn = document.createElement('button');
+            tabBtn.className = 'tab-btn';
+            tabBtn.onclick = () => changeTab('resultado');
+            tabBtn.innerHTML = '🎯 Resultado';
+            tabsContainer.appendChild(tabBtn);
+            
+            const tabContent = document.createElement('div');
+            tabContent.id = 'resultadoTab';
+            tabContent.className = 'tab-content';
+            tabContent.innerHTML = `
+                <div class="card">
+                    <h3>🎯 Resultado del Análisis</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="number" id="resultadoCategoria">-</div>
+                            <div class="label">Categoría Energética</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number" id="resultadoProbabilidad">-</div>
+                            <div class="label">Probabilidad</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number" id="resultadoCosto">-</div>
+                            <div class="label">Costo Estimado Mensual</div>
+                        </div>
+                    </div>
+                    <div style="background: #f8f9fc; padding: 1rem; border-radius: 12px; margin: 1rem 0;">
+                        <p><strong>ID Análisis:</strong> <span id="resultadoId">-</span></p>
+                        <p><strong>Fecha:</strong> <span id="resultadoFecha">-</span></p>
+                    </div>
+                    <h4 style="margin-top: 1.5rem;">💡 Recomendaciones</h4>
+                    <div id="resultadoRecomendaciones"></div>
+                </div>
+            `;
+            document.getElementById('mainSection').appendChild(tabContent);
+        }
+
+        function mostrarErrorAnalisis(result) {
+            let mensaje = '❌ Error al realizar el análisis';
+            
+            if (result.status === 400) {
+                mensaje = '⚠️ Datos inválidos en el formulario';
+                if (result.detalles) {
+                    const detalles = Object.entries(result.detalles)
+                        .map(([campo, error]) => `• ${campo}: ${error}`)
+                        .join('\n');
+                    mensaje += `\n\n${detalles}`;
+                }
+            } else if (result.status === 422) {
+                mensaje = `⚠️ ${result.error}`;
+            } else if (result.status === 503) {
+                mensaje = '⚠️ El servicio de análisis no está disponible. Intenta más tarde.';
+            } else if (result.status === 0) {
+                mensaje = '⚠️ No se pudo conectar con el servidor. Verifica tu conexión.';
+            }
+            
+            alert(mensaje);
         }
 
         function recolectarDatosFormulario() {
             const getVal = (id) => document.getElementById(id)?.value;
             const data = {
-                id: Date.now().toString(),
-                usuario: APP_STATE.usuarioActual,
-                fecha: new Date().toISOString(),
-                nombre: getVal('nombre'),
-                direccion: getVal('direccion'),
-                latitud: parseFloat(getVal('latitud')) || null,
-                longitud: parseFloat(getVal('longitud')) || null,
                 consumo_kwh: parseFloat(getVal('consumo_kwh')),
                 cantidad_equipos: parseInt(getVal('cantidad_equipos')),
-                horas_alto_consumo: parseInt(getVal('horas_alto_consumo')),
+                horas_alto_consumo: parseFloat(getVal('horas_alto_consumo')),
                 superficie_m2: parseFloat(getVal('superficie_m2')),
-                aires_acondicionados: parseInt(getVal('aires_acondicionados')),
+                habitantes_ocupantes: parseInt(getVal('habitantes_ocupantes')),
                 factor_potencia: parseFloat(getVal('factor_potencia')),
-                pct_iluminacion_led: parseFloat(getVal('pct_iluminacion_led')),
-                pct_equipos_inteligentes: parseFloat(getVal('pct_equipos_inteligentes')),
+                porcentaje_iluminacion_led: parseFloat(getVal('porcentaje_iluminacion_led')),
+                porcentaje_equipos_inteligentes: parseFloat(getVal('porcentaje_equipos_inteligentes')),
                 antiguedad_promedio_ponderada: parseFloat(getVal('antiguedad_promedio_ponderada')),
                 capacidad_solar_kwp: parseFloat(getVal('capacidad_solar_kwp')) || 0,
-                consumo_especifico_kwh_m2: 0,
                 uso_horario_pico: getVal('uso_horario_pico') === 'true',
                 tiene_paneles_solares: getVal('tiene_paneles_solares') === 'true',
                 tipo_inmueble: getVal('tipo_inmueble'),
-                region_pais: getVal('region_pais')
+                region_pais: getVal('region_pais'),
+                latitud: parseFloat(getVal('latitud')),
+                longitud: parseFloat(getVal('longitud'))
             };
-            if (data.consumo_kwh <= 0 || data.superficie_m2 <= 0) {
-                alert('El consumo y la superficie deben ser mayores a 0');
+            
+            if (data.consumo_kwh <= 0) {
+                alert('⚠️ El consumo debe ser mayor a 0');
                 return null;
             }
-            data.consumo_especifico_kwh_m2 = data.consumo_kwh / data.superficie_m2;
+            if (data.superficie_m2 <= 0) {
+                alert('⚠️ La superficie debe ser mayor a 0');
+                return null;
+            }
+            if (data.habitantes_ocupantes < 1) {
+                alert('⚠️ Debe haber al menos 1 habitante');
+                return null;
+            }
+            if (data.factor_potencia <= 0 || data.factor_potencia > 1) {
+                alert('⚠️ El factor de potencia debe estar entre 0.01 y 1.0');
+                return null;
+            }
+            if (data.horas_alto_consumo < 0 || data.horas_alto_consumo > 24) {
+                alert('⚠️ Las horas de alto consumo deben estar entre 0 y 24');
+                return null;
+            }
+            if (data.latitud < -90 || data.latitud > 90) {
+                alert('⚠️ La latitud debe estar entre -90 y 90');
+                return null;
+            }
+            if (data.longitud < -180 || data.longitud > 180) {
+                alert('⚠️ La longitud debe estar entre -180 y 180');
+                return null;
+            }
+            if (data.tiene_paneles_solares && data.capacidad_solar_kwp <= 0) {
+                alert('⚠️ Si tiene paneles solares, la capacidad debe ser mayor a 0');
+                return null;
+            }
+            if (!data.tiene_paneles_solares && data.capacidad_solar_kwp !== 0) {
+                data.capacidad_solar_kwp = 0;
+            }
+            
             return data;
-        }
-
-        function guardarEnHistorial(formData) {
-            const historial = JSON.parse(localStorage.getItem('ecohistorico') || '[]');
-            historial.push(formData);
-            localStorage.setItem('ecohistorico', JSON.stringify(historial));
-            APP_STATE.historial = historial.filter(item => item.usuario === APP_STATE.usuarioActual);
-            cargarHistorialUsuario(APP_STATE.usuarioActual);
-            actualizarAnalisis();
-            actualizarRecomendaciones(formData);
-            actualizarStats();
-            generarJSON(formData);
         }
 
         function resetearPasos() {
@@ -1786,9 +1907,29 @@
         // HISTORIAL
         // ============================================
 
+        async function cargarHistorialDesdeAPI() {
+            if (APP_STATE.esInvitado || !APP_STATE.token) {
+                APP_STATE.historial = [];
+                mostrarHistorial([]);
+                return;
+            }
+            
+            const result = await obtenerHistorialAPI();
+            if (result.success && result.data) {
+                APP_STATE.historial = result.data;
+                mostrarHistorial(APP_STATE.historial);
+            } else {
+                APP_STATE.historial = [];
+                mostrarHistorial([]);
+            }
+        }
+
         function cargarHistorialUsuario(usuario) {
-            const historial = JSON.parse(localStorage.getItem('ecohistorico') || '[]');
-            APP_STATE.historial = historial.filter(item => item.usuario === usuario);
+            if (APP_STATE.esInvitado) {
+                APP_STATE.historial = [];
+                mostrarHistorial([]);
+                return;
+            }
             mostrarHistorial(APP_STATE.historial);
         }
 
@@ -1796,25 +1937,26 @@
             const tbody = document.getElementById('historialBody');
             tbody.innerHTML = '';
             if (historial.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999; padding: 2rem;">No hay registros aún. ¡Completa el formulario!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999; padding: 2rem;">No hay registros aún. ¡Realiza tu primer análisis!</td></tr>';
                 return;
             }
             historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
             historial.forEach(item => {
                 const fecha = new Date(item.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
                 let eficienciaClase = '', eficienciaTexto = '';
-                if (item.consumo_especifico_kwh_m2 < 2) { eficienciaClase = 'excelente'; eficienciaTexto = '🟢 Excelente'; }
-                else if (item.consumo_especifico_kwh_m2 < 4) { eficienciaClase = 'bueno'; eficienciaTexto = '🟡 Bueno'; }
-                else if (item.consumo_especifico_kwh_m2 < 6) { eficienciaClase = 'regular'; eficienciaTexto = '🟠 Regular'; }
+                const consumoEspecifico = item.consumoEspecificoKwhM2 || 0;
+                if (consumoEspecifico < 2) { eficienciaClase = 'excelente'; eficienciaTexto = '🟢 Excelente'; }
+                else if (consumoEspecifico < 4) { eficienciaClase = 'bueno'; eficienciaTexto = '🟡 Bueno'; }
+                else if (consumoEspecifico < 6) { eficienciaClase = 'regular'; eficienciaTexto = '🟠 Regular'; }
                 else { eficienciaClase = 'malo'; eficienciaTexto = '🔴 Malo'; }
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${fecha}</td>
-                    <td>${item.consumo_kwh.toFixed(1)}</td>
-                    <td>${item.superficie_m2.toFixed(1)}</td>
-                    <td>${item.consumo_especifico_kwh_m2.toFixed(2)}</td>
-                    <td>${item.tipo_inmueble}</td>
-                    <td>${item.region_pais}</td>
+                    <td>${(item.consumoKwh || 0).toFixed(1)}</td>
+                    <td>${(item.superficieM2 || 0).toFixed(1)}</td>
+                    <td>${consumoEspecifico.toFixed(2)}</td>
+                    <td>${item.tipoInmueble || '-'}</td>
+                    <td>${item.regionPais || '-'}</td>
                     <td><span class="eficiencia-badge ${eficienciaClase}">${eficienciaTexto}</span></td>
                 `;
                 tbody.appendChild(row);
@@ -1832,8 +1974,8 @@
             }
             const datos = [...APP_STATE.historial].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
             const fechas = datos.map(d => new Date(d.fecha).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
-            const consumos = datos.map(d => d.consumo_kwh);
-            const especificos = datos.map(d => d.consumo_especifico_kwh_m2);
+            const consumos = datos.map(d => d.consumoKwh || 0);
+            const especificos = datos.map(d => d.consumoEspecificoKwhM2 || 0);
             crearGraficoTendencia(fechas, consumos, especificos);
             calcularTendencia(datos);
         }
@@ -1878,8 +2020,12 @@
             if (datos.length < 2) return;
             const ultimo = datos[datos.length - 1];
             const primero = datos[0];
-            const cambioConsumo = ((ultimo.consumo_kwh - primero.consumo_kwh) / primero.consumo_kwh) * 100;
-            const cambioEficiencia = ((ultimo.consumo_especifico_kwh_m2 - primero.consumo_especifico_kwh_m2) / primero.consumo_especifico_kwh_m2) * 100;
+            const consumoUltimo = ultimo.consumoKwh || 0;
+            const consumoPrimero = primero.consumoKwh || 1;
+            const especUltimo = ultimo.consumoEspecificoKwhM2 || 0;
+            const especPrimero = primero.consumoEspecificoKwhM2 || 1;
+            const cambioConsumo = ((consumoUltimo - consumoPrimero) / consumoPrimero) * 100;
+            const cambioEficiencia = ((especUltimo - especPrimero) / especPrimero) * 100;
             let mensaje = '', emoji = '';
             if (cambioConsumo < -5 && cambioEficiencia < -5) { mensaje = '✅ Excelente mejora en eficiencia energética'; emoji = '📉'; }
             else if (cambioConsumo < 0 && cambioEficiencia < 0) { mensaje = '📈 Buena tendencia. Sigue mejorando'; emoji = '📉'; }
@@ -1908,14 +2054,18 @@
             }
             const antes = datos.find(d => new Date(d.fecha).toISOString().split('T')[0] === fechaAntes);
             const despues = datos.find(d => new Date(d.fecha).toISOString().split('T')[0] === fechaDespues);
-            const mejoraConsumo = ((despues.consumo_kwh - antes.consumo_kwh) / antes.consumo_kwh) * 100;
-            const mejoraEficiencia = ((despues.consumo_especifico_kwh_m2 - antes.consumo_especifico_kwh_m2) / antes.consumo_especifico_kwh_m2) * 100;
+            const consumoAntes = antes.consumoKwh || 1;
+            const consumoDespues = despues.consumoKwh || 0;
+            const especAntes = antes.consumoEspecificoKwhM2 || 1;
+            const especDespues = despues.consumoEspecificoKwhM2 || 0;
+            const mejoraConsumo = ((consumoDespues - consumoAntes) / consumoAntes) * 100;
+            const mejoraEficiencia = ((especDespues - especAntes) / especAntes) * 100;
             const emoji = mejoraConsumo < 0 && mejoraEficiencia < 0 ? '✅' : '⚠️';
             const mensaje = mejoraConsumo < 0 && mejoraEficiencia < 0 ? '¡Excelente mejora! El consumo ha disminuido' : 'El consumo ha aumentado. Revisa las recomendaciones';
             document.getElementById('comparativaResultado').innerHTML = `
                 <h4>${emoji} Comparativa</h4>
-                <p><strong>Antes</strong> (${new Date(antes.fecha).toLocaleDateString('es-ES')}): ${antes.consumo_kwh} kWh - ${antes.consumo_especifico_kwh_m2.toFixed(2)} kWh/m²</p>
-                <p><strong>Después</strong> (${new Date(despues.fecha).toLocaleDateString('es-ES')}): ${despues.consumo_kwh} kWh - ${despues.consumo_especifico_kwh_m2.toFixed(2)} kWh/m²</p>
+                <p><strong>Antes</strong> (${new Date(antes.fecha).toLocaleDateString('es-ES')}): ${consumoAntes} kWh - ${especAntes.toFixed(2)} kWh/m²</p>
+                <p><strong>Después</strong> (${new Date(despues.fecha).toLocaleDateString('es-ES')}): ${consumoDespues} kWh - ${especDespues.toFixed(2)} kWh/m²</p>
                 <p><strong>${mensaje}</strong></p>
                 <p>Variación consumo: ${mejoraConsumo > 0 ? '+' : ''}${mejoraConsumo.toFixed(1)}%</p>
                 <p>Variación eficiencia: ${mejoraEficiencia > 0 ? '+' : ''}${mejoraEficiencia.toFixed(1)}%</p>
@@ -1932,7 +2082,7 @@
             const historial = APP_STATE.historial;
             if (historial.length > 0) {
                 const ultimo = historial[historial.length - 1];
-                const eficiencia = ultimo.consumo_especifico_kwh_m2;
+                const eficiencia = ultimo.consumoEspecificoKwhM2 || 0;
                 let recomendacion = '', acciones = '';
                 if (eficiencia < 2) {
                     recomendacion = '🟢 Excelente eficiencia. Mantén buenas prácticas como usar iluminación LED y equipos eficientes.';
@@ -1948,11 +2098,6 @@
                 if (elemEfi) elemEfi.textContent = recomendacion;
                 const elemAcc = document.getElementById('accionesRecomendacion');
                 if (elemAcc) elemAcc.textContent = acciones;
-                if (ultimo.aires_acondicionados > 0) {
-                    const recomAC = `💨 Tienes ${ultimo.aires_acondicionados} aire(s) acondicionado(s). Mantén los filtros limpios y la temperatura en 24°C para optimizar consumo.`;
-                    const elemClima = document.getElementById('climaRecomendacion');
-                    if (elemClima) elemClima.textContent = recomAC;
-                }
             }
             const estacionalidad = calcularEstacionalidad(historial);
             const elemEst = document.getElementById('estacionalRecomendacion');
@@ -1965,7 +2110,7 @@
             historial.forEach(item => {
                 const mes = new Date(item.fecha).getMonth();
                 if (!meses[mes]) meses[mes] = [];
-                meses[mes].push(item.consumo_kwh);
+                meses[mes].push(item.consumoKwh || 0);
             });
             const promedios = {};
             for (const [mes, consumos] of Object.entries(meses)) {
@@ -1985,6 +2130,11 @@
         // ============================================
 
         function generarJSON(datos) {
+            if (APP_STATE.ultimoResultado) {
+                document.getElementById('jsonOutput').textContent = JSON.stringify(APP_STATE.ultimoResultado, null, 2);
+                return;
+            }
+            
             if (!datos) {
                 const historial = APP_STATE.historial;
                 if (historial.length === 0) {
@@ -1994,61 +2144,11 @@
                 datos = historial[historial.length - 1];
             }
             
-            const eficiencia = datos.consumo_especifico_kwh_m2;
-            let categoria, probabilidad;
-            if (eficiencia < 2) { categoria = 'Eficiente'; probabilidad = 0.85 + Math.random() * 0.1; }
-            else if (eficiencia < 4) { categoria = 'Moderado'; probabilidad = 0.65 + Math.random() * 0.2; }
-            else if (eficiencia < 6) { categoria = 'Ineficiente'; probabilidad = 0.55 + Math.random() * 0.2; }
-            else { categoria = 'Muy Ineficiente'; probabilidad = 0.7 + Math.random() * 0.2; }
-            
-            const costo_estimado_mensual = datos.consumo_kwh * 0.6;
-            const costo_referencia_brief = costo_estimado_mensual * 1.25;
-            const co2_evitable_kg_mes = datos.consumo_kwh * 0.42 * (1 - Math.min(1, eficiencia / 10));
-            
-            const recomendaciones = [];
-            if (eficiencia > 4) recomendaciones.push('🔴 Consumo alto. Revisa equipos antiguos o ineficientes.');
-            if (datos.pct_iluminacion_led < 80) recomendaciones.push('💡 Sustituye bombillas por LED (ahorro ~60%).');
-            if (datos.pct_equipos_inteligentes < 30) recomendaciones.push('🔌 Desconecta equipos en stand-by (hasta 12% de ahorro).');
-            if (datos.uso_horario_pico) recomendaciones.push('⏰ Traslada actividades de alto consumo a horas fuera de punta.');
-            if (datos.antiguedad_promedio_ponderada > 8) recomendaciones.push('🔧 Mantenimiento de equipos: consumen hasta 25% más sin mantenimiento.');
-            if (datos.aires_acondicionados > 0) recomendaciones.push('❄️ Mantén los filtros de A/C limpios y temperatura en 24°C.');
-            if (!datos.tiene_paneles_solares) recomendaciones.push('☀️ Considera instalar paneles solares para reducir tu huella de carbono.');
-            
-            const regionRecom = {
-                'Norte': '🌍 En zona norte, prioriza ventilación natural y techos reflectantes.',
-                'Sur': '🌍 En zona sur, mejora aislamiento térmico y usa calefacción eficiente.',
-                'Centro': '🌍 En zona centro, equilibra climatización según temporada.',
-                'Oriente': '🌍 En zona oriente, aprovecha la ventilación cruzada.',
-                'Occidente': '🌍 En zona occidente, optimiza el uso de sombras y toldos.'
-            };
-            if (datos.region_pais && regionRecom[datos.region_pais]) recomendaciones.push(regionRecom[datos.region_pais]);
-            if (recomendaciones.length < 3) recomendaciones.push('✅ Sigue manteniendo buenas prácticas de eficiencia energética.');
-            
             const jsonOutput = {
-                categoria: categoria,
-                probabilidad: Math.round(probabilidad * 100) / 100,
-                costo_estimado_mensual: Math.round(costo_estimado_mensual),
-                costo_referencia_brief: Math.round(costo_referencia_brief),
-                co2_evitable_kg_mes: Math.round(co2_evitable_kg_mes * 100) / 100,
-                recomendaciones: recomendaciones.slice(0, 8),
-                datos_originales: {
-                    consumo_kwh: datos.consumo_kwh,
-                    cantidad_equipos: datos.cantidad_equipos,
-                    horas_alto_consumo: datos.horas_alto_consumo,
-                    superficie_m2: datos.superficie_m2,
-                    aires_acondicionados: datos.aires_acondicionados,
-                    factor_potencia: datos.factor_potencia,
-                    pct_iluminacion_led: datos.pct_iluminacion_led / 100,
-                    pct_equipos_inteligentes: datos.pct_equipos_inteligentes / 100,
-                    antiguedad_promedio_ponderada: datos.antiguedad_promedio_ponderada,
-                    capacidad_solar_kwp: datos.capacidad_solar_kwp || 0,
-                    uso_horario_pico: datos.uso_horario_pico,
-                    tiene_paneles_solares: datos.tiene_paneles_solares,
-                    tipo_inmueble: datos.tipo_inmueble,
-                    region_pais: datos.region_pais,
-                    latitud: datos.latitud || 0,
-                    longitud: datos.longitud || 0
-                }
+                categoria: 'N/A',
+                probabilidad: 0,
+                recomendaciones: [],
+                datos_originales: datos
             };
             document.getElementById('jsonOutput').textContent = JSON.stringify(jsonOutput, null, 2);
         }
@@ -2093,13 +2193,15 @@
                 document.getElementById('tendenciaEstado').textContent = '➡️';
                 return;
             }
-            const promedio = historial.reduce((a, b) => a + b.consumo_kwh, 0) / historial.length;
+            const promedio = historial.reduce((a, b) => a + (b.consumoKwh || 0), 0) / historial.length;
             document.getElementById('promedioConsumo').textContent = promedio.toFixed(1);
-            const mejorEficiencia = Math.min(...historial.map(i => i.consumo_especifico_kwh_m2));
+            const mejorEficiencia = Math.min(...historial.map(i => i.consumoEspecificoKwhM2 || 0));
             document.getElementById('mejorEficiencia').textContent = mejorEficiencia.toFixed(2);
             if (historial.length >= 2) {
                 const sorted = [...historial].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-                const cambio = ((sorted[sorted.length-1].consumo_kwh - sorted[0].consumo_kwh) / sorted[0].consumo_kwh) * 100;
+                const consumoPrimero = sorted[0].consumoKwh || 1;
+                const consumoUltimo = sorted[sorted.length-1].consumoKwh || 0;
+                const cambio = ((consumoUltimo - consumoPrimero) / consumoPrimero) * 100;
                 let emoji = '➡️';
                 if (cambio < -5) emoji = '📉';
                 else if (cambio > 5) emoji = '📈';
@@ -2114,9 +2216,14 @@
         function changeTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            const tabMap = { 'form': 'formTab', 'historial': 'historialTab', 'analisis': 'analisisTab', 'recomendaciones': 'recomendacionesTab', 'json': 'jsonTab' };
+            const tabMap = { 'form': 'formTab', 'historial': 'historialTab', 'analisis': 'analisisTab', 'recomendaciones': 'recomendacionesTab', 'json': 'jsonTab', 'resultado': 'resultadoTab' };
             const tabId = tabMap[tabName];
-            if (tabId) document.getElementById(tabId).classList.add('active');
+            if (tabId) {
+                const tabElement = document.getElementById(tabId);
+                if (tabElement) {
+                    tabElement.classList.add('active');
+                }
+            }
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 if (btn.textContent.trim().toLowerCase().includes(tabName)) btn.classList.add('active');
             });
@@ -2130,8 +2237,7 @@
         // INICIALIZACIÓN
         // ============================================
 
-        document.addEventListener('DOMContentLoaded', function() {
-            mostrarUsuariosGuardados();
+        document.addEventListener('DOMContentLoaded', async function() {
             const hoy = new Date();
             const haceUnMes = new Date();
             haceUnMes.setMonth(haceUnMes.getMonth() - 1);
@@ -2145,7 +2251,22 @@
             document.getElementById('username').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') document.getElementById('password').focus();
             });
-            document.getElementById('username').focus();
+            
+            if (cargarSesion()) {
+                APP_STATE.rol = 'usuario';
+                APP_STATE.esInvitado = false;
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('mainSection').style.display = 'block';
+                document.getElementById('userNameDisplay').textContent = `👤 ${APP_STATE.usuarioActual}`;
+                document.getElementById('userRoleDisplay').textContent = 'Rol: Usuario';
+                document.getElementById('userModeDisplay').textContent = 'Modo: Conectado';
+                document.getElementById('tabJson').style.display = 'none';
+                await cargarHistorialDesdeAPI();
+                actualizarStats();
+                cargarFormulario();
+            } else {
+                document.getElementById('username').focus();
+            }
         });
     </script>
 </body>
