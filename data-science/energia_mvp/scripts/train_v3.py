@@ -27,7 +27,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from xgboost import XGBClassifier
 
-from generate_dataset_v3 import generar_dataset
+from generate_dataset_v3 import generar_dataset  # type: ignore[import]
 
 RANDOM_STATE = 42
 ORDEN = ["Eficiente", "Moderado", "Ineficiente"]

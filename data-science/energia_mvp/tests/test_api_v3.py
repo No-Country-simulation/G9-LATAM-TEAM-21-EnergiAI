@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent / "api"))
 
 import pytest
 from fastapi.testclient import TestClient
-from main_v3 import app
+from main_v3 import app  # type: ignore[import]
 
 
 @pytest.fixture(scope="module")

@@ -1,7 +1,7 @@
 {
   "modelo": "GradientBoosting",
   "esquema": "contrato_frontend_real_v3",
-  "n_registros_entrenamiento": 50000,
+  "n_registros_entrenamiento": 100000,
   "features_num": [
     "consumo_kwh",
     "cantidad_equipos",
@@ -35,8 +35,8 @@
     "BR-Brasilia"
   ],
   "metricas_test": {
-    "accuracy": 0.6131,
-    "f1_macro": 0.6107675601345602
+    "accuracy": 0.59935,
+    "f1_macro": 0.5959806506043789
   },
   "tarifa_referencia_usd_kwh": 0.75
 }
