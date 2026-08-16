@@ -1,151 +1,173 @@
-# MVP — Eficiencia Energética Residencial
-Hackathon ONE · Alura + Oracle · Equipo G9 LATAM
+# EnergIA — Ciencia de Datos ⚡
+### Sector: Sostenibilidad, Energía y Hogares Inteligentes
 
-Clasifica el perfil de consumo eléctrico de una vivienda o pequeño
-establecimiento (`Eficiente` / `Moderado` / `Ineficiente`), genera
-recomendaciones de ahorro y estima el costo mensual, siguiendo el brief del
-reto.
+Servicio de clasificación de eficiencia energética — parte de ciencia de
+datos del proyecto EnergIA (Hackathon ONE, equipo G9 LATAM).
 
-## Estructura del proyecto
+## 📖 Qué hace
 
-```
-energia_mvp/
-├── data/
-│   ├── generate_dataset.py       # generador EnergiAI del dataset sintético
-│   └── consumo_energetico.csv    # dataset generado (100,000 registros)
-├── notebooks/
-│   └── analisis_consumo_energetico.ipynb   # EDA + entrenamiento + evaluación
-├── models/
-│   ├── modelo_eficiencia_energetica.pkl    # pipeline sklearn serializado
-│   └── model_metadata.json                 # métricas y metadatos del modelo
-├── api/
-│   ├── main.py            # FastAPI: endpoints REST
-│   ├── schemas.py          # validación Pydantic
-│   └── recommendations.py  # motor de recomendaciones + estimación financiera
-├── requirements.txt
-└── Dockerfile
-```
+Recibe datos de consumo eléctrico de una vivienda o local, y:
+1. Clasifica el perfil energético: 🟢 **Eficiente** / 🟡 **Moderado** / 🔴 **Ineficiente**
+2. Genera recomendaciones personalizadas de ahorro
+3. Estima el costo mensual (tarifa de referencia $0.75/kWh)
+4. Agrega una alerta preventiva si la temperatura actual (vía OpenWeatherMap)
+   supera los 32°C, sugiriendo minimizar el uso de equipos de alto consumo
 
-## Cómo correr localmente
+## 🔌 Contrato de la API
 
-```bash
-pip install -r requirements.txt
+**Importante:** el endpoint es `/analise-energetica` (no `/analisis-energetico`)
+— coincide exactamente con `AnalisisController.java` del backend.
 
-# 1. Generar datos y entrenar (si no existe ya el .pkl en models/)
-jupyter nbconvert --to notebook --execute --inplace notebooks/analisis_consumo_energetico.ipynb
+### `POST /analise-energetica`
 
-# 2. Levantar la API
-cd api
-uvicorn main:app --reload --port 8000
-```
-
-Documentación interactiva (Swagger) disponible en `http://localhost:8000/docs`.
-
-## Endpoints
-
-### `POST /analisis-energetico`
-Entrada:
 ```json
 {
   "consumo_kwh": 420,
-  "uso_horario_pico": true,
   "cantidad_equipos": 10,
+  "horas_alto_consumo": 8,
+  "superficie_m2": 80,
+  "habitantes_ocupantes": 4,
+  "factor_potencia": 0.92,
+  "porcentaje_iluminacion_led": 0.60,
+  "porcentaje_equipos_inteligentes": 0.30,
+  "antiguedad_promedio_ponderada": 6.5,
+  "capacidad_solar_kwp": 0,
+  "uso_horario_pico": true,
+  "tiene_paneles_solares": false,
   "tipo_inmueble": "Casa",
-  "horas_alto_consumo": 8
-}
-```
-Salida:
-```json
-{
-  "id": "bfa4445e-37af-4d32-bcef-c510f40d75a6",
-  "categoria": "Ineficiente",
-  "probabilidad": 0.85,
-  "recomendaciones": [
-    "Reducir el uso de equipos durante los horarios pico",
-    "Evaluar equipos con alto consumo energético",
-    "Distribuir las actividades de mayor consumo a lo largo del día"
-  ],
-  "costo_estimado_mensual": 315.00
+  "region_pais": "CO-Bogota",
+  "latitud": 4.7110,
+  "longitud": -74.0721
 }
 ```
 
-### `GET /resultados/{id}`
-Consulta un análisis previamente generado.
+`tipo_inmueble` acepta: `Casa`, `Apartamento`, `Local`.
+`region_pais` acepta: `CO-Bogota`, `CO-Medellin`, `MX-CDMX`, `BR-Brasilia`
+(valores exactos usados por el `<select>` del frontend).
+
+**Respuesta:**
+```json
+{
+  "categoria": "Ineficiente",
+  "probabilidad": 0.81,
+  "recomendaciones": [
+    "Reducir el uso de equipos durante los horarios pico",
+    "Evaluar equipos con alto consumo energético: menos del 50% de la iluminación es LED",
+    "Distribuir las actividades de mayor consumo a lo largo del día"
+  ],
+  "costo_estimado_mensual": 315.00,
+  "id_analisis": "a91f3c2e-88b1-4e0a-9c7d-3f2b1e0a9d1c",
+  "fecha": "2026-08-16"
+}
+```
+
+Validación cruzada: si `tiene_paneles_solares=false`, se fuerza
+`capacidad_solar_kwp=0`; si `true`, exige `capacidad_solar_kwp>0`.
 
 ### `GET /health`
 Healthcheck del servicio y del modelo cargado.
 
-## Dataset
+## 🗂 Estructura del proyecto
 
-El dataset (`data/generate_dataset.py`, generador **EnergiAI**) simula
-**100.000 perfiles** de consumo con el esquema exacto pedido por el reto:
-`consumo_kwh`, `uso_horario_pico`, `cantidad_equipos`, `tipo_inmueble`
-(`Apartamento` / `Casa` / `Casa Grande` / `Local Comercial`),
-`horas_alto_consumo` → `categoria`. Los rangos están calibrados con órdenes
-de magnitud de datasets reales de consumo residencial (UCI *Tetouan City*,
-UCI *Individual Household Electric Power Consumption*) y un estudio de 225
-hogares en Maharashtra, India. La categoría se deriva de un índice de
-eficiencia (consumo por equipo + uso en pico + horas de alto consumo) con
-ruido gaussiano, para que el problema sea realista y no trivialmente
-separable.
-
-## Modelo
-
-Se compararon `RandomForest`, `GradientBoosting` y `XGBoost` sobre el
-dataset de 100,000 registros. Métricas en test (ver
-`models/model_metadata.json` para el resultado exacto de la última
-ejecución):
-
-| Modelo | Accuracy | F1-macro |
-|---|---|---|
-| XGBoost (seleccionado) | ~0.74 | ~0.75 |
-
-El modelo solo usa 4 variables numéricas + tipo de inmueble (one-hot), sin
-variables auxiliares como antigüedad de equipos; el detalle de EDA,
-entrenamiento, validación cruzada e importancia de variables está en el
-notebook.
-
-## Integración con OCI
-
-El servicio usa **OCI Object Storage** (API S3-compatible) para almacenar y
-distribuir el modelo entrenado, desacoplando el artefacto de modelo del
-contenedor de la API:
-
-1. Sube el `.pkl` y `model_metadata.json` a un bucket de Object Storage.
-2. Define las variables de entorno al desplegar la API (en OCI Compute,
-   Container Instances o Functions):
-   - `OCI_BUCKET_NAME`
-   - `OCI_ACCESS_KEY_ID` / `OCI_SECRET_ACCESS_KEY` (Customer Secret Keys)
-   - `OCI_ENDPOINT_URL` (`https://<namespace>.compat.objectstorage.<region>.oraclecloud.com`)
-3. Al arrancar, `api/main.py` descarga el modelo desde el bucket antes de
-   cargarlo; si no hay configuración OCI, usa la copia local en `./models`.
-
-Si no se configuran las variables OCI, la API sigue funcionando con el
-modelo empaquetado localmente — útil para desarrollo y demo del hackathon.
-
-## Despliegue con Docker
-
-```bash
-docker build -t energia-mvp-api .
-docker run -p 8000:8000 energia-mvp-api
-
-# con OCI Object Storage:
-docker run -p 8000:8000 \
-  -e OCI_BUCKET_NAME=energia-mvp-bucket \
-  -e OCI_ACCESS_KEY_ID=... \
-  -e OCI_SECRET_ACCESS_KEY=... \
-  -e OCI_ENDPOINT_URL=https://<namespace>.compat.objectstorage.<region>.oraclecloud.com \
-  energia-mvp-api
+```
+energia_mvp/
+├── api/
+│   ├── main_v3.py              # FastAPI: endpoint /analise-energetica
+│   ├── schemas_v3.py           # validación Pydantic (15 campos)
+│   ├── recommendations_v3.py   # recomendaciones + cálculo de costo
+│   └── openweather_client.py   # clima real (OpenWeatherMap) con fallback
+├── data/
+│   └── generate_dataset_v3.py  # generador del dataset sintético (100k filas)
+├── models/
+│   ├── modelo_eficiencia_energetica_v3.pkl
+│   └── model_metadata_v3.json
+├── scripts/
+│   └── train_v3.py             # entrena y compara algoritmos, registra en MLflow
+├── tests/
+│   └── test_api_v3.py          # 9 tests automatizados
+└── requirements.txt
 ```
 
-## Tarifa de referencia
+## 🧠 Modelo
 
-Se usa la tarifa sugerida por el reto: **$0.75 USD/kWh** (`api/recommendations.py`).
+Se compararon `RandomForest`, `GradientBoosting` y `XGBoost` sobre 100,000
+registros sintéticos con las 15 variables del contrato. Resultados (ver
+`models/model_metadata_v3.json` para la corrida exacta):
 
-## Pendientes / roadmap (recursos opcionales del brief)
+| Algoritmo | Accuracy | F1-macro |
+|---|---|---|
+| RandomForest | 0.593 | 0.591 |
+| **GradientBoosting (seleccionado)** | **0.599** | **0.596** |
+| XGBoost | 0.597 | 0.592 |
 
-- [ ] Dashboard de seguimiento e historial de análisis (persistencia en OCI
-      Autonomous DB o SQLite en vez de almacenamiento en memoria)
-- [ ] Procesamiento por lotes vía CSV
-- [ ] Pruebas automatizadas (`tests/`)
-- [ ] Alertas de alto consumo y comparación entre períodos
+GradientBoosting ganó en 4 de 5 métricas (accuracy, f1_macro, f1_eficiente,
+f1_ineficiente); RandomForest fue mejor solo en `f1_moderado`. El
+experimento completo, con comparación de algoritmos y matrices de
+confusión, está documentado en `notebooks/evaluacion_modelo_v3.ipynb` y
+registrado en MLflow (`scripts/train_v3.py`, experimento
+`energia-eficiencia-clasificacion`).
+
+`f1_ineficiente` es la métrica más baja de los 3 algoritmos (~0.46-0.48) —
+detectar la categoría "Ineficiente" es la tarea más difícil del modelo,
+posiblemente por el ruido deliberado del generador sintético.
+
+## 🌡 Alerta climática
+
+Usa la API gratuita de [OpenWeatherMap](https://openweathermap.org/api).
+Requiere la variable de entorno `OPENWEATHER_API_KEY`. Si no está
+configurada, o si la llamada falla/hace timeout, el análisis se completa
+igual — simplemente sin la recomendación de clima (fallback no bloqueante).
+Umbral: 32°C. Caché en memoria con TTL de 20 min por coordenada.
+
+## 🚀 Cómo correr localmente
+
+**Requiere Python 3.11.**
+
+```bash
+pip install -r requirements.txt
+
+# (Re)entrenar si hace falta
+cd scripts
+python train_v3.py
+
+# Ver comparación de experimentos en MLflow
+mlflow ui --port 5000
+
+# Levantar la API
+cd ../api
+uvicorn main_v3:app --reload --port 8000
+```
+
+Documentación interactiva: `http://localhost:8000/docs`
+
+## ✅ Tests
+
+```bash
+pytest tests/test_api_v3.py -v
+```
+
+9 tests: healthcheck, las 4 ciudades reales, validación cruzada de paneles
+solares, rechazo del formato antiguo de `region_pais`, formato UUID del
+`id_analisis`, y que la ausencia de `OPENWEATHER_API_KEY` no rompe el análisis.
+
+## 🐳 Docker
+
+```bash
+docker build -t energia-ia-service .
+docker run -p 8000:8000 -e OPENWEATHER_API_KEY=tu_key energia-ia-service
+```
+
+Integrado en `docker-compose.yml` del proyecto raíz como el servicio `ia-service`.
+
+## 📋 Estado de integración
+
+- [x] Modelo entrenado, evaluado y comparado (3 algoritmos, MLflow)
+- [x] Clasificación funcional con probabilidad
+- [x] Recomendaciones automáticas (reglas + alerta climática condicional)
+- [x] Estimación de costo mensual
+- [x] API documentada (Swagger/OpenAPI automático)
+- [x] 9 tests automatizados
+- [x] Gate de calidad en CI (`f1_macro` mínimo 0.55)
+- [ ] **Backend Java pendiente de actualizar** (`DatosRegistroAnalisis.java`
+      solo acepta 5 campos; este servicio ya expone 15) — bloqueador
+      conocido, coordinado con el equipo de backend
