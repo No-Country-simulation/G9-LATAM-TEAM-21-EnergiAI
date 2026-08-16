@@ -1,17 +1,27 @@
 """
 Entrena el modelo con el contrato real del frontend (4 ciudades, formato
 con guion). Registra cada corrida en MLflow.
+
+Ubicación esperada: data-science/energia_mvp/scripts/train_v3.py
+Lee el dataset desde ../data/generate_dataset_v3.py
+Guarda el modelo en ../models/
 """
 import json
+import sys
 import warnings
+from pathlib import Path
+
 warnings.filterwarnings("ignore")
+
+# Permite importar generate_dataset_v3 desde ../data (carpeta hermana de scripts/)
+sys.path.append(str(Path(__file__).resolve().parent.parent / "data"))
 
 import joblib
 import mlflow
 import mlflow.sklearn
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, f1_score, confusion_matrix
+from sklearn.metrics import accuracy_score, classification_report, f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -32,6 +42,9 @@ FEATURES_BOOL = ["uso_horario_pico", "tiene_paneles_solares"]
 FEATURES_CAT = ["tipo_inmueble", "region_pais"]
 
 MLFLOW_EXPERIMENT = "energia-eficiencia-clasificacion"
+
+# Carpeta de salida: ../models (hermana de scripts/, NO scripts/models_v3)
+MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 
 MODELOS_CANDIDATOS = {
     "RandomForest": lambda: RandomForestClassifier(
@@ -104,11 +117,10 @@ def main():
 
     print(f"\nMejor modelo: {mejor['nombre']} (f1_macro={mejor['f1_macro']:.4f})")
 
-    import os
-    os.makedirs("models_v3", exist_ok=True)
-    joblib.dump(mejor["pipe"], "models_v3/modelo_eficiencia_energetica_v3.pkl")
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    joblib.dump(mejor["pipe"], MODELS_DIR / "modelo_eficiencia_energetica_v3.pkl")
     if mejor["le"] is not None:
-        joblib.dump(mejor["le"], "models_v3/label_encoder_v3.pkl")
+        joblib.dump(mejor["le"], MODELS_DIR / "label_encoder_v3.pkl")
 
     metadata = {
         "modelo": mejor["nombre"],
@@ -122,9 +134,9 @@ def main():
         "metricas_test": {"accuracy": float(mejor["accuracy"]), "f1_macro": float(mejor["f1_macro"])},
         "tarifa_referencia_usd_kwh": 0.75,
     }
-    with open("models_v3/model_metadata_v3.json", "w") as f:
+    with open(MODELS_DIR / "model_metadata_v3.json", "w") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
-    print("Modelo guardado en models_v3/")
+    print(f"Modelo guardado en {MODELS_DIR}/")
 
 
 if __name__ == "__main__":

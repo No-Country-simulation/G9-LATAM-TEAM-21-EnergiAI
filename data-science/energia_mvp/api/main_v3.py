@@ -2,9 +2,12 @@
 API REST — EnergIA, alineada al contrato REAL confirmado en el código del
 frontend (rama qa/frontend-mvp-version-2.0).
 
+Ubicación esperada: data-science/energia_mvp/api/main_v3.py
+Carga el modelo desde ../models/ (carpeta hermana de api/)
+
 IMPORTANTE: el endpoint es /analise-energetica (con "e"), no
 /analisis-energetico — así está mapeado en AnalisisController.java y así
-lo llama el frontend. Verificado contra el código real, no asumido.
+lo llama el frontend.
 """
 import json
 import logging
@@ -30,10 +33,12 @@ from schemas_v3 import ConsumoEnergeticoRequest, ConsumoEnergeticoResponse, Erro
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("energia-api")
 
-BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "models_v3" / "modelo_eficiencia_energetica_v3.pkl"
-LABEL_ENCODER_PATH = BASE_DIR / "models_v3" / "label_encoder_v3.pkl"
-METADATA_PATH = BASE_DIR / "models_v3" / "model_metadata_v3.json"
+# CORREGIDO: main_v3.py está en api/, y models/ es carpeta HERMANA de api/
+# (ambas dentro de energia_mvp/), por eso .parent.parent y no .parent
+BASE_DIR = Path(__file__).resolve().parent.parent
+MODEL_PATH = BASE_DIR / "models" / "modelo_eficiencia_energetica_v3.pkl"
+LABEL_ENCODER_PATH = BASE_DIR / "models" / "label_encoder_v3.pkl"
+METADATA_PATH = BASE_DIR / "models" / "model_metadata_v3.json"
 
 FEATURES_NUM = [
     "consumo_kwh", "cantidad_equipos", "horas_alto_consumo", "superficie_m2",
@@ -53,7 +58,7 @@ _metadata = None
 async def lifespan(app: FastAPI):
     global _model, _label_encoder, _metadata
     if not MODEL_PATH.exists():
-        raise RuntimeError(f"No se encontró el modelo en {MODEL_PATH}. Ejecuta train_v3.py primero.")
+        raise RuntimeError(f"No se encontró el modelo en {MODEL_PATH}. Ejecuta scripts/train_v3.py primero.")
     _model = joblib.load(MODEL_PATH)
     _label_encoder = joblib.load(LABEL_ENCODER_PATH) if LABEL_ENCODER_PATH.exists() else None
     _metadata = json.loads(METADATA_PATH.read_text()) if METADATA_PATH.exists() else {}
@@ -77,7 +82,7 @@ def health():
 
 
 @app.post(
-    "/analise-energetica",  # <- nombre real usado por AnalisisController.java y el frontend
+    "/analise-energetica",
     response_model=ConsumoEnergeticoResponse,
     responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
     tags=["Análisis"],

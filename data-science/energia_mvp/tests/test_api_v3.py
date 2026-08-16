@@ -1,6 +1,12 @@
+"""
+Ubicación esperada: data-science/energia_mvp/tests/test_api_v3.py
+Importa main_v3 desde ../api/main_v3.py
+"""
 import sys
 from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent))
+
+# Permite importar main_v3 desde ../api (carpeta hermana de tests/)
+sys.path.append(str(Path(__file__).resolve().parent.parent / "api"))
 
 import pytest
 from fastapi.testclient import TestClient
@@ -32,8 +38,6 @@ def test_health(client):
 
 
 def test_endpoint_correcto_es_analise_energetica(client):
-    """El endpoint real usado por el frontend es /analise-energetica, no
-    /analisis-energetico — verificado contra AnalisisController.java."""
     resp = client.post("/analise-energetica", json=payload_base())
     assert resp.status_code == 200
 
@@ -50,8 +54,6 @@ def test_las_4_ciudades_reales_del_frontend(client):
 
 
 def test_ciudad_formato_viejo_guion_bajo_falla(client):
-    """Confirma que el formato incorrecto (guion bajo) que yo había usado
-    antes de revisar el frontend real ahora es rechazado correctamente."""
     resp = client.post("/analise-energetica", json=payload_base(region_pais="CO_Bogota"))
     assert resp.status_code == 422
 
