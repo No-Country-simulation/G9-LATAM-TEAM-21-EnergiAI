@@ -1,0 +1,42 @@
+{
+  "modelo": "GradientBoosting",
+  "esquema": "contrato_frontend_real_v3",
+  "n_registros_entrenamiento": 50000,
+  "features_num": [
+    "consumo_kwh",
+    "cantidad_equipos",
+    "horas_alto_consumo",
+    "superficie_m2",
+    "habitantes_ocupantes",
+    "factor_potencia",
+    "porcentaje_iluminacion_led",
+    "porcentaje_equipos_inteligentes",
+    "antiguedad_promedio_ponderada",
+    "capacidad_solar_kwp",
+    "consumo_especifico_kwh_m2"
+  ],
+  "features_bool": [
+    "uso_horario_pico",
+    "tiene_paneles_solares"
+  ],
+  "features_cat": [
+    "tipo_inmueble",
+    "region_pais"
+  ],
+  "categorias": [
+    "Eficiente",
+    "Moderado",
+    "Ineficiente"
+  ],
+  "ciudades_soportadas": [
+    "CO-Bogota",
+    "CO-Medellin",
+    "MX-CDMX",
+    "BR-Brasilia"
+  ],
+  "metricas_test": {
+    "accuracy": 0.6131,
+    "f1_macro": 0.6107675601345602
+  },
+  "tarifa_referencia_usd_kwh": 0.75
+}
