@@ -73,19 +73,19 @@ Healthcheck del servicio y del modelo cargado.
 ```
 energia_mvp/
 ├── api/
-│   ├── main_v3.py              # FastAPI: endpoint /analisis-energetico
-│   ├── schemas_v3.py           # validación Pydantic (15 campos)
-│   ├── recommendations_v3.py   # recomendaciones + cálculo de costo
+│   ├── main.py              # FastAPI: endpoint /analisis-energetico
+│   ├── schemas.py           # validación Pydantic (15 campos)
+│   ├── recommendations.py   # recomendaciones + cálculo de costo
 │   └── openweather_client.py   # clima real (OpenWeatherMap) con fallback
 ├── data/
-│   └── generate_dataset_v3.py  # generador del dataset sintético (100k filas)
+│   └── generate_dataset.py  # generador del dataset sintético (100k filas)
 ├── models/
 │   ├── modelo_eficiencia_energetica_v3.pkl
 │   └── model_metadata_v3.json
 ├── scripts/
 │   └── train_v3.py             # entrena y compara algoritmos, registra en MLflow
 ├── tests/
-│   └── test_api_v3.py          # 9 tests automatizados
+│   └── test_api.py          # 9 tests automatizados
 └── requirements.txt
 ```
 
@@ -136,7 +136,7 @@ mlflow ui --port 5000
 
 # Levantar la API
 cd ../api
-uvicorn main_v3:app --reload --port 8000
+uvicorn main:app --reload --port 8000
 ```
 
 Documentación interactiva: `http://localhost:8000/docs`
@@ -144,7 +144,7 @@ Documentación interactiva: `http://localhost:8000/docs`
 ## ✅ Tests
 
 ```bash
-pytest tests/test_api_v3.py -v
+pytest tests/test_api.py -v
 ```
 
 9 tests: healthcheck, las 4 ciudades reales, validación cruzada de paneles
@@ -169,6 +169,6 @@ Integrado en `docker-compose.yml` del proyecto raíz como el servicio `ia-servic
 - [x] API documentada (Swagger/OpenAPI automático)
 - [x] 9 tests automatizados
 - [x] Gate de calidad en CI (`f1_macro` mínimo 0.55)
-- [ ] **Backend Java pendiente de actualizar** (`DatosRegistroAnalisis.java`
-      solo acepta 5 campos; este servicio ya expone 15) — bloqueador
-      conocido, coordinado con el equipo de backend
+- [x] Backend Java actualizado (`DatosRegistroAnalisis.java` acepta los
+      15 campos) y probado end-to-end: login JWT → POST
+      `/api/analise-energetica` → `201` con predicción real del modelo

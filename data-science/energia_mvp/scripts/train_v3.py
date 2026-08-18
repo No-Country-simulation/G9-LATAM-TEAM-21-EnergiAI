@@ -3,7 +3,7 @@ Entrena el modelo con el contrato real del frontend (4 ciudades, formato
 con guion). Registra cada corrida en MLflow.
 
 Ubicación esperada: data-science/energia_mvp/scripts/train_v3.py
-Lee el dataset desde ../data/generate_dataset_v3.py
+Lee el dataset desde ../data/generate_dataset.py
 Guarda el modelo en ../models/
 """
 import json
@@ -13,7 +13,7 @@ from pathlib import Path
 
 warnings.filterwarnings("ignore")
 
-# Permite importar generate_dataset_v3 desde ../data (carpeta hermana de scripts/)
+# Permite importar generate_dataset desde ../data (carpeta hermana de scripts/)
 sys.path.append(str(Path(__file__).resolve().parent.parent / "data"))
 
 import joblib
@@ -27,7 +27,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from xgboost import XGBClassifier
 
-from generate_dataset_v3 import generar_dataset  # type: ignore[import]
+from generate_dataset import generar_dataset  # type: ignore[import]
 
 RANDOM_STATE = 42
 ORDEN = ["Eficiente", "Moderado", "Ineficiente"]

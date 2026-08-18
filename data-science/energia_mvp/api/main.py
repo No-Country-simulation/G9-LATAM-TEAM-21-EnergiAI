@@ -2,7 +2,7 @@
 API REST — EnergIA, alineada al contrato REAL confirmado en el código del
 frontend (rama qa/frontend-mvp-version-2.0).
 
-Ubicación esperada: data-science/energia_mvp/api/main_v3.py
+Ubicación esperada: data-science/energia_mvp/api/main.py
 Carga el modelo desde ../models/ (carpeta hermana de api/)
 
 IMPORTANTE: el endpoint de este servicio es /analisis-energetico. No
@@ -24,17 +24,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from openweather_client import generar_alerta_climatica
-from recommendations_v3 import (
+from recommendations import (
     generar_recomendaciones_base,
     calcular_consumo_especifico,
     calcular_costo_estimado_mensual,
 )
-from schemas_v3 import ConsumoEnergeticoRequest, ConsumoEnergeticoResponse, ErrorResponse
+from schemas import ConsumoEnergeticoRequest, ConsumoEnergeticoResponse, ErrorResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("energia-api")
 
-# CORREGIDO: main_v3.py está en api/, y models/ es carpeta HERMANA de api/
+# CORREGIDO: main.py está en api/, y models/ es carpeta HERMANA de api/
 # (ambas dentro de energia_mvp/), por eso .parent.parent y no .parent
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_PATH = BASE_DIR / "models" / "modelo_eficiencia_energetica_v3.pkl"

@@ -18,4 +18,4 @@ ENV OCI_ENDPOINT_URL=""
 EXPOSE 8000
 
 WORKDIR /app/api
-CMD ["uvicorn", "main_v3:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

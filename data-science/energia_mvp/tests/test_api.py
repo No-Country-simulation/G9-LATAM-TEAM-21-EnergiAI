@@ -1,16 +1,16 @@
 """
-Ubicación esperada: data-science/energia_mvp/tests/test_api_v3.py
-Importa main_v3 desde ../api/main_v3.py
+Ubicación esperada: data-science/energia_mvp/tests/test_api.py
+Importa main desde ../api/main.py
 """
 import sys
 from pathlib import Path
 
-# Permite importar main_v3 desde ../api (carpeta hermana de tests/)
+# Permite importar main desde ../api (carpeta hermana de tests/)
 sys.path.append(str(Path(__file__).resolve().parent.parent / "api"))
 
 import pytest
 from fastapi.testclient import TestClient
-from main_v3 import app  # type: ignore[import]
+from main import app  # type: ignore[import]
 
 
 @pytest.fixture(scope="module")
