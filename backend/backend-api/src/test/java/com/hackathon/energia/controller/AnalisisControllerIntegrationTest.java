@@ -88,7 +88,7 @@ class AnalisisControllerIntegrationTest {
         @Test
         @DisplayName("Payload válido → 201 CREATED con respuesta completa")
         void testPayloadValido() throws Exception {
-            when(analisisService.procesarAnalisis(any())).thenReturn(crearRespuestaValida());
+            when(analisisService.procesarAnalisis(any(), any())).thenReturn(crearRespuestaValida());
 
             var datos = crearDatosValidos();
 
@@ -115,7 +115,7 @@ class AnalisisControllerIntegrationTest {
                     UUID.randomUUID(),
                     LocalDate.now()
             );
-            when(analisisService.procesarAnalisis(any())).thenReturn(respuesta);
+            when(analisisService.procesarAnalisis(any(), any())).thenReturn(respuesta);
 
             var datos = crearDatosValidos();
 
@@ -277,7 +277,7 @@ class AnalisisControllerIntegrationTest {
         @Test
         @DisplayName("Cuando IA falla → 503 SERVICE_UNAVAILABLE")
         void testErrorServicioIA() throws Exception {
-            when(analisisService.procesarAnalisis(any()))
+            when(analisisService.procesarAnalisis(any(), any()))
                     .thenThrow(new IllegalStateException("Error al comunicarse con IA"));
 
             var datos = crearDatosValidos();

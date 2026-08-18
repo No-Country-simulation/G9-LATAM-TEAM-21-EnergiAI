@@ -1,9 +1,11 @@
 package com.hackathon.energia.service;
 
 import com.hackathon.energia.client.IaModelCliente;
+import com.hackathon.energia.dto.DatosHistorialAnalisis;
 import com.hackathon.energia.dto.DatosRegistroAnalisis;
 import com.hackathon.energia.dto.DatosRespuestaAnalisis;
 import com.hackathon.energia.model.AnalisisEnergetico;
+import com.hackathon.energia.model.Usuario;
 import com.hackathon.energia.repository.AnalisisEnergeticoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ public class AnalisisService {
     private final ClimateService climateService;
 
     @Transactional
-    public DatosRespuestaAnalisis procesarAnalisis(DatosRegistroAnalisis datos) {
+    public DatosRespuestaAnalisis procesarAnalisis(DatosRegistroAnalisis datos, Usuario usuario) {
        var prediccion = iaModelCliente.obtenerPrediccion(datos);
 
        var recomendaciones = new ArrayList<>(prediccion.recomendaciones());
@@ -57,6 +59,7 @@ public class AnalisisService {
                 .probabilidad(prediccion.probabilidad())
                 .recomendaciones(recomendaciones)
                 .costoEstimadoMensual(costoEstimado)
+                .usuarioId(usuario != null ? usuario.getId() : null)
                 .build();
 
        // saveAndFlush (no save): con @UuidGenerator el INSERT se puede diferir al
@@ -72,5 +75,24 @@ public class AnalisisService {
                analisisGuardado.getId(),
                analisisGuardado.getFechaCreacion().toLocalDate()
        );
+    }
+
+    public List<DatosHistorialAnalisis> obtenerHistorial(Usuario usuario) {
+        return analisisEnergeticoRepository.findByUsuarioIdOrderByFechaCreacionDesc(usuario.getId())
+                .stream()
+                .map(a -> new DatosHistorialAnalisis(
+                        a.getId(),
+                        a.getFechaCreacion().toLocalDate(),
+                        a.getConsumoKwh(),
+                        a.getSuperficieM2(),
+                        (a.getSuperficieM2() != null && a.getSuperficieM2() > 0)
+                                ? a.getConsumoKwh() / a.getSuperficieM2()
+                                : 0.0,
+                        a.getTipoInmueble(),
+                        a.getRegionPais(),
+                        a.getCategoria(),
+                        a.getCostoEstimadoMensual()
+                ))
+                .toList();
     }
 }

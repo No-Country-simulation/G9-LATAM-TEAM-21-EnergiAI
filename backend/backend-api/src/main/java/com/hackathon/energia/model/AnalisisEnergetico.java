@@ -96,4 +96,8 @@ public class AnalisisEnergetico {
     @CreationTimestamp
     @Column(name = "creacion", updatable = false,  nullable = false)
     private LocalDateTime fechaCreacion;
+
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "usuario_id", updatable = false, length = 36)
+    private UUID usuarioId;
 }

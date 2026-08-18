@@ -83,9 +83,9 @@ class AnalisisServiceTest {
                     .id(UUID.randomUUID())
                     .fechaCreacion(LocalDateTime.now())
                     .build();
-            when(analisisEnergeticoRepository.save(any())).thenReturn(analisisGuardado);
+            when(analisisEnergeticoRepository.saveAndFlush(any())).thenReturn(analisisGuardado);
 
-            var resultado = analisisService.procesarAnalisis(datosPrueba);
+            var resultado = analisisService.procesarAnalisis(datosPrueba, null);
 
             assertEquals(new BigDecimal("315.00"), resultado.costoEstimadoMensual());
         }
@@ -108,9 +108,9 @@ class AnalisisServiceTest {
                     .id(UUID.randomUUID())
                     .fechaCreacion(LocalDateTime.now())
                     .build();
-            when(analisisEnergeticoRepository.save(any())).thenReturn(analisisGuardado);
+            when(analisisEnergeticoRepository.saveAndFlush(any())).thenReturn(analisisGuardado);
 
-            var resultado = analisisService.procesarAnalisis(datos);
+            var resultado = analisisService.procesarAnalisis(datos, null);
 
             assertEquals(new BigDecimal("75.00"), resultado.costoEstimadoMensual());
         }
@@ -134,12 +134,12 @@ class AnalisisServiceTest {
                     .id(UUID.randomUUID())
                     .fechaCreacion(LocalDateTime.now())
                     .build();
-            when(analisisEnergeticoRepository.save(any())).thenReturn(analisisGuardado);
+            when(analisisEnergeticoRepository.saveAndFlush(any())).thenReturn(analisisGuardado);
 
-            analisisService.procesarAnalisis(datosPrueba);
+            analisisService.procesarAnalisis(datosPrueba, null);
 
             ArgumentCaptor<AnalisisEnergetico> captor = ArgumentCaptor.forClass(AnalisisEnergetico.class);
-            verify(analisisEnergeticoRepository).save(captor.capture());
+            verify(analisisEnergeticoRepository).saveAndFlush(captor.capture());
             var entity = captor.getValue();
 
             assertEquals(420.0, entity.getConsumoKwh());
@@ -180,9 +180,9 @@ class AnalisisServiceTest {
                     .id(UUID.randomUUID())
                     .fechaCreacion(LocalDateTime.now())
                     .build();
-            when(analisisEnergeticoRepository.save(any())).thenReturn(analisisGuardado);
+            when(analisisEnergeticoRepository.saveAndFlush(any())).thenReturn(analisisGuardado);
 
-            var resultado = analisisService.procesarAnalisis(datosPrueba);
+            var resultado = analisisService.procesarAnalisis(datosPrueba, null);
 
             assertEquals(3, resultado.recomendaciones().size());
             assertTrue(resultado.recomendaciones().contains("Alerta de temperatura alta"));
@@ -202,9 +202,9 @@ class AnalisisServiceTest {
                     .id(UUID.randomUUID())
                     .fechaCreacion(LocalDateTime.now())
                     .build();
-            when(analisisEnergeticoRepository.save(any())).thenReturn(analisisGuardado);
+            when(analisisEnergeticoRepository.saveAndFlush(any())).thenReturn(analisisGuardado);
 
-            var resultado = analisisService.procesarAnalisis(datosPrueba);
+            var resultado = analisisService.procesarAnalisis(datosPrueba, null);
 
             assertEquals(1, resultado.recomendaciones().size());
             assertEquals("Recomendación 1", resultado.recomendaciones().get(0));
@@ -232,9 +232,9 @@ class AnalisisServiceTest {
                     .id(expectedId)
                     .fechaCreacion(expectedFecha)
                     .build();
-            when(analisisEnergeticoRepository.save(any())).thenReturn(analisisGuardado);
+            when(analisisEnergeticoRepository.saveAndFlush(any())).thenReturn(analisisGuardado);
 
-            var resultado = analisisService.procesarAnalisis(datosPrueba);
+            var resultado = analisisService.procesarAnalisis(datosPrueba, null);
 
             assertEquals(expectedId, resultado.idAnalisis());
             assertEquals(expectedFecha.toLocalDate(), resultado.fecha());
