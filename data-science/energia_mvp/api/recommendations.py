@@ -1,47 +1,32 @@
-TARIFA_REFERENCIA_USD_KWH = 0.75
-
-# Umbrales de referencia por tipo de inmueble (equipos "típicos" según el
-# generador de datos EnergiAI). Se usan para juzgar si cantidad_equipos o
-# consumo_kwh están por encima de lo esperable para ese tipo de inmueble.
-RANGOS_EQUIPOS_TIPICOS = {
-    "Apartamento": (3, 10),
-    "Casa": (5, 16),
-    "Casa Grande": (8, 22),
-    "Local Comercial": (6, 20),
-}
+TARIFA_REFERENCIA_KWH = 0.75
 
 
-def generar_recomendaciones(registro: dict) -> list:
+def generar_recomendaciones_base(registro: dict) -> list:
     recs = []
-
-    consumo_kwh = registro.get("consumo_kwh", 0)
-    cantidad_equipos = registro.get("cantidad_equipos", 1) or 1
-    consumo_por_equipo = consumo_kwh / cantidad_equipos
-
     if registro.get("uso_horario_pico"):
         recs.append("Reducir el uso de equipos durante los horarios pico")
-
-    tipo = registro.get("tipo_inmueble")
-    rango = RANGOS_EQUIPOS_TIPICOS.get(tipo)
-    if rango and cantidad_equipos > rango[1]:
-        recs.append("Evaluar equipos con alto consumo energético: la cantidad de equipos supera lo típico para este tipo de inmueble")
-    elif cantidad_equipos >= 15:
-        recs.append("Evaluar equipos con alto consumo energético")
-
+    if registro.get("porcentaje_iluminacion_led", 1) < 0.5:
+        recs.append("Evaluar equipos con alto consumo energético: menos del 50% de la iluminación es LED")
+    if registro.get("antiguedad_promedio_ponderada", 0) >= 10:
+        recs.append("Considerar renovar equipos con más de 10 años de antigüedad promedio")
+    if registro.get("factor_potencia", 1) < 0.85:
+        recs.append("Revisar el factor de potencia: valores bajos indican pérdidas por energía reactiva")
+    if registro.get("porcentaje_equipos_inteligentes", 1) < 0.2:
+        recs.append("Evaluar termostatos o enchufes inteligentes para automatizar el ahorro")
+    if not registro.get("tiene_paneles_solares") and registro.get("consumo_kwh", 0) >= 500:
+        recs.append("Con este nivel de consumo, evaluar paneles solares podría tener buen retorno")
     if registro.get("horas_alto_consumo", 0) >= 6:
         recs.append("Distribuir las actividades de mayor consumo a lo largo del día")
-
-    if consumo_por_equipo >= 45:
-        recs.append("El consumo por equipo es elevado; considerar renovar o hacer mantenimiento a los equipos más antiguos")
-
-    if consumo_kwh >= 600:
-        recs.append("El consumo mensual total es alto; realizar una auditoría energética del inmueble")
-
     if not recs:
         recs.append("El perfil de consumo ya es eficiente; mantener los hábitos actuales")
-
     return recs
 
 
-def estimar_costo(consumo_kwh: float, tarifa: float = TARIFA_REFERENCIA_USD_KWH) -> float:
-    return round(consumo_kwh * tarifa, 2)
+def calcular_consumo_especifico(consumo_kwh: float, superficie_m2: float) -> float:
+    if not superficie_m2:
+        return 0.0
+    return round(consumo_kwh / superficie_m2, 2)
+
+
+def calcular_costo_estimado_mensual(consumo_kwh: float) -> float:
+    return round(consumo_kwh * TARIFA_REFERENCIA_KWH, 2)

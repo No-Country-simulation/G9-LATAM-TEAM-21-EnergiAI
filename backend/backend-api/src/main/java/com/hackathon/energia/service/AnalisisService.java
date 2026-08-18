@@ -59,7 +59,10 @@ public class AnalisisService {
                 .costoEstimadoMensual(costoEstimado)
                 .build();
 
-       var analisisGuardado = analisisEnergeticoRepository.save(analisis);
+       // saveAndFlush (no save): con @UuidGenerator el INSERT se puede diferir al
+       // commit de la transaccion, y necesitamos leer fechaCreacion (@CreationTimestamp)
+       // ya poblada antes de construir la respuesta.
+       var analisisGuardado = analisisEnergeticoRepository.saveAndFlush(analisis);
 
        return new DatosRespuestaAnalisis(
                prediccion.categoria(),

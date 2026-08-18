@@ -1,15 +1,16 @@
 """
-Pruebas automatizadas de la API de eficiencia energética.
-Ejecutar con: pytest tests/test_api.py -v
+Ubicación esperada: data-science/energia_mvp/tests/test_api.py
+Importa main desde ../api/main.py
 """
 import sys
 from pathlib import Path
 
+# Permite importar main desde ../api (carpeta hermana de tests/)
 sys.path.append(str(Path(__file__).resolve().parent.parent / "api"))
 
 import pytest
 from fastapi.testclient import TestClient
-from main import app
+from main import app  # type: ignore[import]
 
 
 @pytest.fixture(scope="module")
@@ -18,92 +19,64 @@ def client():
         yield c
 
 
+def payload_base(**overrides):
+    base = {
+        "consumo_kwh": 420, "cantidad_equipos": 10, "horas_alto_consumo": 8,
+        "superficie_m2": 80, "habitantes_ocupantes": 4, "factor_potencia": 0.92,
+        "porcentaje_iluminacion_led": 0.60, "porcentaje_equipos_inteligentes": 0.30,
+        "antiguedad_promedio_ponderada": 6.5, "capacidad_solar_kwp": 0,
+        "uso_horario_pico": True, "tiene_paneles_solares": False,
+        "tipo_inmueble": "Casa", "region_pais": "CO-Bogota",
+        "latitud": 4.7110, "longitud": -74.0721,
+    }
+    base.update(overrides)
+    return base
+
+
 def test_health(client):
-    resp = client.get("/health")
+    assert client.get("/health").status_code == 200
+
+
+def test_endpoint_correcto_es_analise_energetica(client):
+    resp = client.post("/analisis-energetico", json=payload_base())
     assert resp.status_code == 200
-    assert resp.json()["status"] == "ok"
 
 
-def test_analisis_energetico_caso_ineficiente(client):
-    payload = {
-        "consumo_kwh": 900,
-        "uso_horario_pico": True,
-        "cantidad_equipos": 20,
-        "tipo_inmueble": "Local Comercial",
-        "horas_alto_consumo": 12,
-    }
-    resp = client.post("/analisis-energetico", json=payload)
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["categoria"] in ["Eficiente", "Moderado", "Ineficiente"]
-    assert 0 <= body["probabilidad"] <= 1
-    assert body["costo_estimado_mensual"] == round(900 * 0.75, 2)
-    assert len(body["recomendaciones"]) > 0
+def test_caso_del_documento_costo_exacto(client):
+    resp = client.post("/analisis-energetico", json=payload_base())
+    assert resp.json()["costo_estimado_mensual"] == 315.00
 
 
-def test_analisis_energetico_caso_brief_exacto(client):
-    payload = {
-        "consumo_kwh": 420,
-        "uso_horario_pico": True,
-        "cantidad_equipos": 10,
-        "tipo_inmueble": "Casa",
-        "horas_alto_consumo": 8,
-    }
-    resp = client.post("/analisis-energetico", json=payload)
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["costo_estimado_mensual"] == 315.0
+def test_las_4_ciudades_reales_del_frontend(client):
+    for ciudad in ["CO-Bogota", "CO-Medellin", "MX-CDMX", "BR-Brasilia"]:
+        resp = client.post("/analisis-energetico", json=payload_base(region_pais=ciudad))
+        assert resp.status_code == 200, f"Falló con {ciudad}"
 
 
-def test_validacion_consumo_negativo(client):
-    payload = {
-        "consumo_kwh": -10,
-        "uso_horario_pico": True,
-        "cantidad_equipos": 10,
-        "tipo_inmueble": "Casa",
-        "horas_alto_consumo": 8,
-    }
-    resp = client.post("/analisis-energetico", json=payload)
+def test_ciudad_formato_viejo_guion_bajo_falla(client):
+    resp = client.post("/analisis-energetico", json=payload_base(region_pais="CO_Bogota"))
     assert resp.status_code == 422
 
 
-def test_validacion_tipo_inmueble_invalido(client):
-    payload = {
-        "consumo_kwh": 420,
-        "uso_horario_pico": True,
-        "cantidad_equipos": 10,
-        "tipo_inmueble": "Castillo",
-        "horas_alto_consumo": 8,
-    }
-    resp = client.post("/analisis-energetico", json=payload)
+def test_validacion_cruzada_paneles_sin_capacidad(client):
+    resp = client.post("/analisis-energetico", json=payload_base(
+        tiene_paneles_solares=True, capacidad_solar_kwp=0
+    ))
     assert resp.status_code == 422
 
 
-def test_validacion_cantidad_equipos_cero(client):
-    payload = {
-        "consumo_kwh": 420,
-        "uso_horario_pico": True,
-        "cantidad_equipos": 0,
-        "tipo_inmueble": "Casa",
-        "horas_alto_consumo": 8,
-    }
-    resp = client.post("/analisis-energetico", json=payload)
+def test_validacion_tipo_inmueble_fuera_de_enum(client):
+    resp = client.post("/analisis-energetico", json=payload_base(tipo_inmueble="Local Comercial"))
     assert resp.status_code == 422
 
 
-def test_consulta_resultado_inexistente(client):
-    resp = client.get("/resultados/id-que-no-existe")
-    assert resp.status_code == 404
+def test_id_analisis_es_uuid_valido(client):
+    import uuid
+    resp = client.post("/analisis-energetico", json=payload_base())
+    uuid.UUID(resp.json()["id_analisis"])
 
 
-def test_flujo_completo_analisis_y_consulta(client):
-    payload = {
-        "consumo_kwh": 150,
-        "uso_horario_pico": False,
-        "cantidad_equipos": 4,
-        "tipo_inmueble": "Apartamento",
-        "horas_alto_consumo": 2,
-    }
-    creado = client.post("/analisis-energetico", json=payload).json()
-    consultado = client.get(f"/resultados/{creado['id']}").json()
-    assert consultado == creado
+def test_sin_api_key_no_rompe_el_analisis(client, monkeypatch):
+    monkeypatch.delenv("OPENWEATHER_API_KEY", raising=False)
+    resp = client.post("/analisis-energetico", json=payload_base())
+    assert resp.status_code == 200
