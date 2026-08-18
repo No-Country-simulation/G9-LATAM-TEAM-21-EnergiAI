@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoEnergy - Gestor de Eficiencia Energética</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>EnergIA - Inteligencia para el consumo energético</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -14,17 +16,22 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f5f7fb;
-            color: #1a1a2e;
+            font-family: 'Space Grotesk', Helvetica, sans-serif;
+            background: #F6F2E9;
+            color: #1B1A17;
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
 
+        .mono { font-family: 'IBM Plex Mono', monospace; }
+
+        input[type=range] { accent-color: #2F7A7E; }
+
         .navbar {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: white;
+            background: #1B1A17;
+            color: #F6F2E9;
             padding: 1rem 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-bottom: 1px solid rgba(246,242,233,.16);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -35,24 +42,24 @@
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: baseline;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 12px;
         }
 
         .nav-brand {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.5rem;
-            font-weight: 800;
+            align-items: baseline;
+            gap: 12px;
         }
 
-        .brand-icon { font-size: 2rem; }
-        .brand-text {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .brand-text { font-size: 1.2rem; font-weight: 700; letter-spacing: -.02em; }
+        .brand-sub {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: .68rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: rgba(246,242,233,.5);
         }
 
         .container {
@@ -62,17 +69,10 @@
         }
 
         .card {
-            background: white;
-            border-radius: 20px;
+            background: #FFFDF8;
+            border: 1px solid rgba(27,26,23,.16);
             padding: 2rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
             margin-bottom: 2rem;
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 50px rgba(0,0,0,0.08);
         }
 
         /* Login Section */
@@ -80,6 +80,8 @@
             max-width: 600px;
             margin: 3rem auto;
         }
+
+        #loginSection h2 { font-size: 1.5rem; font-weight: 500; letter-spacing: -.02em; margin-bottom: .5rem; }
 
         .login-container { margin-top: 1.5rem; }
 
@@ -92,42 +94,57 @@
         .role-option {
             flex: 1;
             padding: 1.5rem;
-            border: 3px solid #e1e5ed;
-            border-radius: 16px;
+            border: 1px solid rgba(27,26,23,.22);
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f8f9fc;
+            transition: border-color .15s ease, background .15s ease;
+            background: #FFFDF8;
         }
 
         .role-option:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-color: #2F7A7E;
         }
 
         .role-option.selected {
-            border-color: #4facfe;
-            background: #f0f4ff;
+            border-color: #1B1A17;
+            background: #F6F2E9;
         }
 
-        .role-option .icon { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
-        .role-option .title { font-weight: 700; font-size: 1.1rem; }
-        .role-option .desc { font-size: 0.85rem; color: #4a4a6a; margin-top: 0.3rem; }
+        .role-option .icon { font-size: .78rem; letter-spacing: .1em; color: #2F7A7E; display: block; margin-bottom: 0.6rem; }
+        .role-option .title { font-weight: 700; font-size: 1.05rem; }
+        .role-option .desc { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: rgba(27,26,23,.5); margin-top: 0.4rem; }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 0.3rem;
-            margin-bottom: 0.8rem;
+            gap: 0.4rem;
+            margin-bottom: 0.9rem;
         }
 
         .form-group label {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #4a4a6a;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: rgba(27,26,23,.55);
             display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        input[type=text], input[type=password], input[type=number], input[type=date], select {
+            padding: 0.75rem 0.9rem;
+            border: 1px solid rgba(27,26,23,.22);
+            font-size: 0.95rem;
+            font-family: inherit;
+            background: #FFFDF8;
+            color: #1B1A17;
+            width: 100%;
+        }
+
+        input[type=text]:focus, input[type=password]:focus, input[type=number]:focus, input[type=date]:focus, select:focus {
+            outline: 2px solid #2F7A7E;
+            outline-offset: -1px;
         }
 
         .password-wrapper {
@@ -138,20 +155,7 @@
 
         .password-wrapper input {
             flex: 1;
-            padding: 0.8rem 1rem;
-            border: 2px solid #e1e5ed;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            background: #f8f9fc;
             padding-right: 3rem;
-        }
-
-        .password-wrapper input:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.1);
-            background: white;
         }
 
         .toggle-password {
@@ -160,140 +164,122 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             padding: 4px;
-            color: #4a4a6a;
-            transition: color 0.3s ease;
+            color: rgba(27,26,23,.55);
+            transition: color 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .toggle-password:hover {
-            color: #4facfe;
+            color: #2F7A7E;
         }
 
         .form-group .help-text {
-            font-size: 0.8rem;
-            color: #6c757d;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            color: rgba(27,26,23,.45);
             margin-top: 0.2rem;
-            font-style: italic;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            border: none;
+            background: #1B1A17;
+            color: #F6F2E9;
+            border: 1px solid #1B1A17;
             padding: 1rem 2rem;
-            border-radius: 50px;
-            font-weight: 700;
+            font-weight: 500;
             font-size: 1rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: opacity .15s ease;
             width: 100%;
             margin-top: 0.5rem;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3);
-        }
+        .btn-primary:hover { opacity: .88; }
 
         .btn-register {
-            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-            color: white;
-            border: none;
+            background: transparent;
+            color: #1B1A17;
+            border: 1px solid rgba(27,26,23,.28);
             padding: 0.8rem 2rem;
-            border-radius: 50px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background .15s ease;
             margin-top: 0.5rem;
             width: 100%;
         }
 
-        .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(108, 92, 231, 0.3);
-        }
+        .btn-register:hover { background: rgba(27,26,23,.05); }
 
         .btn-danger {
-            background: #ff6b6b;
-            color: white;
-            border: none;
+            background: transparent;
+            color: #A33A22;
+            border: 1px solid #A33A22;
             padding: 0.8rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background .15s ease;
         }
 
-        .btn-danger:hover {
-            background: #ee5a24;
-            transform: translateY(-2px);
-        }
+        .btn-danger:hover { background: rgba(163,58,34,.08); }
 
         .btn-secondary {
-            background: #e8edf5;
-            color: #1a1a2e;
-            border: none;
+            background: transparent;
+            color: #1B1A17;
+            border: 1px solid rgba(27,26,23,.28);
             padding: 0.8rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background .15s ease;
         }
 
-        .btn-secondary:hover {
-            background: #d5dde8;
-            transform: translateY(-2px);
-        }
+        .btn-secondary:hover { background: rgba(27,26,23,.05); }
 
         .btn-success {
-            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
-            color: white;
-            border: none;
+            background: #2F7A7E;
+            color: #F6F2E9;
+            border: 1px solid #2F7A7E;
             padding: 1rem 2rem;
-            border-radius: 50px;
-            font-weight: 700;
+            font-weight: 500;
             font-size: 1rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: opacity .15s ease;
             width: 100%;
             margin-top: 0.5rem;
         }
 
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 206, 201, 0.3);
-        }
+        .btn-success:hover { opacity: .88; }
 
         .login-users {
             margin-top: 1.5rem;
             padding: 1rem;
-            background: #f8f9fc;
-            border-radius: 12px;
+            background: #F6F2E9;
+            border: 1px solid rgba(27,26,23,.16);
         }
 
         .login-users h4 {
-            color: #4a4a6a;
+            font-family: 'IBM Plex Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: rgba(27,26,23,.5);
             margin-bottom: 0.5rem;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
         }
 
         .user-avatars {
             display: flex;
-            gap: 0.8rem;
+            gap: 0.6rem;
             flex-wrap: wrap;
         }
 
         .user-avatar {
             padding: 0.5rem 1rem;
-            background: white;
-            border: 2px solid #e1e5ed;
-            border-radius: 50px;
+            background: #FFFDF8;
+            border: 1px solid rgba(27,26,23,.22);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: border-color .15s ease;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -301,13 +287,11 @@
         }
 
         .user-avatar:hover {
-            border-color: #4facfe;
-            background: #f0f4ff;
-            transform: translateY(-2px);
+            border-color: #2F7A7E;
         }
 
         .user-avatar .remove-user {
-            color: #ff6b6b;
+            color: #A33A22;
             cursor: pointer;
             font-weight: bold;
             margin-left: 0.3rem;
@@ -315,8 +299,7 @@
         }
 
         .user-avatar .remove-user:hover {
-            color: #ee5a24;
-            transform: scale(1.2);
+            color: #8E3F20;
         }
 
         /* Modal */
@@ -327,7 +310,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(27,26,23,.5);
             z-index: 9999;
             justify-content: center;
             align-items: center;
@@ -338,27 +321,20 @@
         }
 
         .modal-box {
-            background: white;
-            border-radius: 20px;
+            background: #FFFDF8;
+            border: 1px solid rgba(27,26,23,.16);
             padding: 2rem;
             max-width: 400px;
             width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: modalIn 0.3s ease;
-        }
-
-        @keyframes modalIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
         }
 
         .modal-box h3 {
             margin-bottom: 0.5rem;
-            color: #1a1a2e;
+            color: #1B1A17;
         }
 
         .modal-box p {
-            color: #4a4a6a;
+            color: rgba(27,26,23,.6);
             margin-bottom: 1rem;
         }
 
@@ -375,29 +351,29 @@
         .modal-box .modal-actions button {
             flex: 1;
             padding: 0.8rem;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
+            border: 1px solid transparent;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
         }
 
         .modal-box .modal-actions .btn-confirm {
-            background: #ff6b6b;
-            color: white;
+            background: transparent;
+            color: #A33A22;
+            border-color: #A33A22;
         }
 
         .modal-box .modal-actions .btn-confirm:hover {
-            background: #ee5a24;
+            background: rgba(163,58,34,.08);
         }
 
         .modal-box .modal-actions .btn-cancel {
-            background: #e8edf5;
-            color: #1a1a2e;
+            background: transparent;
+            color: #1B1A17;
+            border-color: rgba(27,26,23,.28);
         }
 
         .modal-box .modal-actions .btn-cancel:hover {
-            background: #d5dde8;
+            background: rgba(27,26,23,.05);
         }
 
         .user-header {
@@ -406,9 +382,8 @@
             align-items: center;
             margin-bottom: 2rem;
             padding: 1rem 2rem;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            background: #FFFDF8;
+            border: 1px solid rgba(27,26,23,.16);
             flex-wrap: wrap;
             gap: 1rem;
         }
@@ -420,70 +395,75 @@
             flex-wrap: wrap;
         }
 
+        .user-info h2 { font-size: 1.1rem; font-weight: 500; }
+
         .role-badge {
             display: inline-block;
-            padding: 0.3rem 1rem;
-            background: #e8edf5;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #4a4a6a;
+            padding: 0.3rem 0.9rem;
+            background: #F6F2E9;
+            border: 1px solid rgba(27,26,23,.16);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: .04em;
+            color: rgba(27,26,23,.6);
         }
 
         .tabs {
             display: flex;
-            gap: 0.5rem;
+            gap: 4px;
             margin-bottom: 2rem;
             flex-wrap: wrap;
+            border-bottom: 1px solid rgba(27,26,23,.16);
         }
 
         .tab-btn {
-            padding: 0.8rem 1.5rem;
-            border: 2px solid #e1e5ed;
-            background: white;
-            border-radius: 50px;
+            padding: 0.7rem 1rem;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: transparent;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            color: #4a4a6a;
+            font-weight: 500;
+            font-size: .92rem;
+            transition: color .15s ease;
+            color: rgba(27,26,23,.5);
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            margin-bottom: -1px;
         }
 
         .tab-btn:hover {
-            background: #f0f4ff;
-            border-color: #4facfe;
+            color: #1B1A17;
         }
 
         .tab-btn.active {
-            background: #4facfe;
-            color: white;
-            border-color: #4facfe;
+            color: #1B1A17;
+            border-bottom-color: #1B1A17;
         }
 
         .tab-content {
             display: none;
-            animation: fadeIn 0.5s ease;
+            animation: fadeIn 0.35s ease;
         }
 
         .tab-content.active { display: block; }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        @keyframes egSpin { to { transform: rotate(360deg); } }
 
         .tooltip-trigger {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #4facfe;
-            color: white;
-            font-size: 12px;
+            width: 18px;
+            height: 18px;
+            background: #2F7A7E;
+            color: #F6F2E9;
+            font-size: 11px;
             font-weight: 700;
             cursor: help;
             position: relative;
@@ -502,18 +482,17 @@
             position: absolute;
             bottom: calc(100% + 10px);
             left: 50%;
-            transform: translateX(-50%) translateY(-10px);
-            background: #1a1a2e;
-            color: white;
+            transform: translateX(-50%) translateY(-6px);
+            background: #1B1A17;
+            color: #F6F2E9;
+            border: 1px solid rgba(246,242,233,.18);
             padding: 1rem;
-            border-radius: 12px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 400;
-            width: 320px;
+            width: 300px;
             text-align: left;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             z-index: 1000;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             line-height: 1.5;
         }
 
@@ -524,7 +503,7 @@
             left: 50%;
             transform: translateX(-50%);
             border: 8px solid transparent;
-            border-top-color: #1a1a2e;
+            border-top-color: #1B1A17;
         }
 
         .form-row {
@@ -537,26 +516,27 @@
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 1px;
+            background: rgba(27,26,23,.16);
+            border: 1px solid rgba(27,26,23,.16);
+            margin-bottom: 2rem;
         }
 
         .stat-card {
-            background: #f8f9fc;
+            background: #FFFDF8;
             padding: 1.5rem;
-            border-radius: 16px;
             text-align: center;
         }
 
-        .stat-card .number { font-size: 2rem; font-weight: 800; color: #1a1a2e; }
-        .stat-card .label { color: #4a4a6a; font-size: 0.9rem; }
+        .stat-card .number { font-family: 'IBM Plex Mono', monospace; font-size: 1.8rem; font-weight: 500; color: #1B1A17; letter-spacing: -.02em; }
+        .stat-card .label { color: rgba(27,26,23,.5); font-size: 0.72rem; font-family: 'IBM Plex Mono', monospace; letter-spacing: .06em; text-transform: uppercase; margin-top: .3rem; display: block; }
 
         .table-container { overflow-x: auto; margin-top: 1rem; }
         table { width: 100%; border-collapse: collapse; }
-        thead { background: #f8f9fc; border-bottom: 2px solid #e1e5ed; }
-        th { padding: 1rem; text-align: left; font-weight: 700; color: #4a4a6a; font-size: 0.85rem; text-transform: uppercase; }
-        td { padding: 1rem; border-bottom: 1px solid #f0f2f5; }
-        tr:hover { background: #f8f9fc; }
+        thead { background: #F6F2E9; border-bottom: 1px solid rgba(27,26,23,.16); }
+        th { padding: 0.9rem 1rem; text-align: left; font-weight: 500; color: rgba(27,26,23,.5); font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; font-family: 'IBM Plex Mono', monospace; }
+        td { padding: 0.9rem 1rem; border-bottom: 1px solid rgba(27,26,23,.1); }
+        tr:hover { background: rgba(27,26,23,.03); }
 
         .analisis-grid {
             display: grid;
@@ -565,73 +545,69 @@
         }
 
         .analisis-card {
-            background: #f8f9fc;
-            border-radius: 16px;
+            background: #FFFDF8;
+            border: 1px solid rgba(27,26,23,.16);
             padding: 1.5rem;
         }
 
-        .analisis-card h4 { margin-bottom: 1rem; color: #1a1a2e; display: flex; align-items: center; gap: 0.5rem; }
-        .analisis-info { margin-top: 1rem; padding: 1rem; background: white; border-radius: 12px; }
-        .comparativa-resultado { margin-top: 1rem; padding: 1rem; background: white; border-radius: 12px; border: 2px solid #e1e5ed; }
+        .analisis-card h4 { margin-bottom: 1rem; color: #1B1A17; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; }
+        .analisis-info { margin-top: 1rem; padding: 1rem; background: #F6F2E9; border: 1px solid rgba(27,26,23,.12); }
+        .comparativa-resultado { margin-top: 1rem; padding: 1rem; background: #F6F2E9; border: 1px solid rgba(27,26,23,.16); }
 
         .eficiencia-badge {
             display: inline-block;
-            padding: 0.2rem 0.8rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.8rem;
+            padding: 0.2rem 0.7rem;
+            font-weight: 500;
+            font-size: 0.75rem;
+            font-family: 'IBM Plex Mono', monospace;
         }
 
-        .eficiencia-badge.excelente { background: #d4edda; color: #155724; }
-        .eficiencia-badge.bueno { background: #cce5ff; color: #004085; }
-        .eficiencia-badge.regular { background: #fff3cd; color: #856404; }
-        .eficiencia-badge.malo { background: #f8d7da; color: #721c24; }
+        .eficiencia-badge.excelente { background: rgba(46,107,62,.1); color: #2E6B3E; }
+        .eficiencia-badge.bueno { background: rgba(47,122,126,.12); color: #2F7A7E; }
+        .eficiencia-badge.regular { background: rgba(138,107,20,.12); color: #8A6B14; }
+        .eficiencia-badge.malo { background: rgba(163,58,34,.1); color: #A33A22; }
 
-        #recomendacionesContainer { display: grid; gap: 1rem; }
+        #recomendacionesContainer { display: flex; flex-direction: column; }
 
         .recomendacion-item {
             display: flex;
             gap: 1rem;
-            padding: 1.5rem;
-            background: #f8f9fc;
-            border-radius: 16px;
-            border-left: 4px solid #4facfe;
+            padding: 1.25rem 0;
+            border-bottom: 1px solid rgba(27,26,23,.1);
         }
 
-        .recomendacion-icon { font-size: 2rem; flex-shrink: 0; }
-        .recomendacion-content h4 { margin-bottom: 0.3rem; color: #1a1a2e; display: flex; align-items: center; gap: 0.5rem; }
-        .recomendacion-content p { color: #4a4a6a; }
+        .recomendacion-icon { font-size: .8rem; color: #2F7A7E; padding-top: 3px; flex-shrink: 0; }
+        .recomendacion-content h4 { margin-bottom: 0.3rem; color: #1B1A17; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; }
+        .recomendacion-content p { color: rgba(27,26,23,.6); }
 
         .json-output {
-            background: #1a1a2e;
-            color: #00f2fe;
+            background: #1B1A17;
+            color: #2F7A7E;
+            border: 1px solid rgba(27,26,23,.16);
             padding: 1.5rem;
-            border-radius: 12px;
-            font-family: 'Courier New', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.85rem;
             overflow-x: auto;
             white-space: pre-wrap;
             margin-top: 1rem;
         }
 
-        .teaching-mode .card { border: 2px solid #d4edda; }
+        .teaching-mode .card { border: 1px solid rgba(46,107,62,.4); }
         .teaching-mode .form-group .help-text {
-            color: #155724;
-            background: #d4edda;
-            padding: 0.5rem 0.8rem;
-            border-radius: 8px;
+            color: #2E6B3E;
+            background: rgba(46,107,62,.08);
+            padding: 0.4rem 0.7rem;
             margin-top: 0.3rem;
         }
 
         .teaching-tip {
-            background: #d4edda;
-            border-radius: 12px;
+            background: rgba(47,122,126,.08);
             padding: 1rem;
             margin: 1rem 0;
-            border-left: 4px solid #28a745;
+            border-left: 3px solid #2F7A7E;
         }
 
-        .teaching-tip strong { color: #155724; }
+        .teaching-tip strong { color: #1F5457; }
 
         .step-indicators {
             display: flex;
@@ -646,34 +622,35 @@
             top: 50%;
             left: 0;
             right: 0;
-            height: 2px;
-            background: #e1e5ed;
+            height: 1px;
+            background: rgba(27,26,23,.16);
             transform: translateY(-50%);
             z-index: 0;
         }
 
+        .step-dot-wrap { display: flex; flex-direction: column; align-items: center; gap: .5rem; position: relative; z-index: 1; background: #FFFDF8; padding: 0 .5rem; }
+
         .step-dot {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: white;
-            border: 3px solid #e1e5ed;
+            width: 36px;
+            height: 36px;
+            background: #FFFDF8;
+            border: 1px solid rgba(27,26,23,.22);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            color: #4a4a6a;
-            position: relative;
-            z-index: 1;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            font-family: 'IBM Plex Mono', monospace;
+            color: rgba(27,26,23,.55);
+            transition: border-color .15s ease, background .15s ease, color .15s ease;
             cursor: pointer;
         }
 
-        .step-dot.active { border-color: #4facfe; background: #4facfe; color: white; }
-        .step-dot.completed { border-color: #00b894; background: #00b894; color: white; }
-        .step-dot:hover { transform: scale(1.1); }
+        .step-dot-label { font-size: .72rem; color: rgba(27,26,23,.5); font-weight: 500; }
 
-        .step-content { display: none; animation: fadeIn 0.5s ease; }
+        .step-dot.active { border-color: #1B1A17; background: #1B1A17; color: #F6F2E9; }
+        .step-dot.completed { border-color: #2F7A7E; background: #2F7A7E; color: #F6F2E9; }
+
+        .step-content { display: none; animation: fadeIn 0.35s ease; }
         .step-content.active { display: block; }
 
         .step-navigation {
@@ -685,41 +662,122 @@
 
         .step-navigation button {
             padding: 0.8rem 2rem;
-            border: none;
-            border-radius: 50px;
-            font-weight: 600;
+            border: 1px solid transparent;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: opacity .15s ease, background .15s ease;
         }
 
-        .step-navigation .btn-prev { background: #e8edf5; color: #1a1a2e; }
-        .step-navigation .btn-prev:hover { background: #d5dde8; }
-        .step-navigation .btn-next { background: #4facfe; color: white; }
-        .step-navigation .btn-next:hover { background: #3d8fd9; transform: translateY(-2px); }
-        .step-navigation .btn-submit { background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); color: white; }
-        .step-navigation .btn-submit:hover { transform: translateY(-2px); }
+        .step-navigation .btn-prev { background: transparent; color: #1B1A17; border-color: rgba(27,26,23,.28); }
+        .step-navigation .btn-prev:hover { background: rgba(27,26,23,.05); }
+        .step-navigation .btn-next { background: #1B1A17; color: #F6F2E9; border-color: #1B1A17; }
+        .step-navigation .btn-next:hover { opacity: .88; }
+        .step-navigation .btn-submit { background: #2F7A7E; color: #F6F2E9; border-color: #2F7A7E; }
+        .step-navigation .btn-submit:hover { opacity: .88; }
 
         .tecnico-help {
-            background: #f0f4ff;
-            border-radius: 16px;
+            background: rgba(138,107,20,.08);
             padding: 1.5rem;
             margin-top: 1.5rem;
-            border-left: 4px solid #6c5ce7;
+            border-left: 3px solid #8A6B14;
         }
 
-        .tecnico-help h4 { color: #6c5ce7; margin-bottom: 0.5rem; }
+        .tecnico-help h4 { color: #8A6B14; margin-bottom: 0.5rem; }
         .tecnico-help ul { list-style: none; padding: 0; }
         .tecnico-help ul li { padding: 0.3rem 0; padding-left: 1.5rem; position: relative; }
-        .tecnico-help ul li::before { content: '🔧'; position: absolute; left: 0; }
+        .tecnico-help ul li::before { content: '–'; position: absolute; left: 0; color: #8A6B14; }
 
         .error-message {
-            color: #ff6b6b;
-            font-size: 0.85rem;
+            color: #A33A22;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.8rem;
             margin-top: 0.3rem;
             display: none;
         }
 
         .error-message.show { display: block; }
+
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 340px;
+            max-width: calc(100vw - 40px);
+        }
+
+        .toast {
+            background: #FFFDF8;
+            border: 1px solid rgba(27,26,23,.16);
+            border-left: 3px solid #2F7A7E;
+            padding: 14px 16px;
+            font-size: 0.88rem;
+            line-height: 1.55;
+            color: #1B1A17;
+            opacity: 0;
+            transform: translateX(14px);
+            transition: opacity .18s ease, transform .18s ease;
+            cursor: pointer;
+        }
+
+        .toast.show { opacity: 1; transform: translateX(0); }
+
+        .toast-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .toast-info .toast-label { color: #2F7A7E; }
+        .toast-success { border-left-color: #2E6B3E; }
+        .toast-success .toast-label { color: #2E6B3E; }
+        .toast-warning { border-left-color: #8A6B14; }
+        .toast-warning .toast-label { color: #8A6B14; }
+        .toast-error { border-left-color: #A33A22; }
+        .toast-error .toast-label { color: #A33A22; }
+
+        @media (max-width: 480px) {
+            #toastContainer { top: 12px; right: 12px; left: 12px; width: auto; }
+        }
+
+        .slider-row { display: flex; flex-direction: column; gap: 10px; grid-column: 1 / -1; }
+        .slider-row .slider-head { display: flex; justify-content: space-between; align-items: baseline; }
+        .slider-row .slider-head span:last-child { font-family: 'IBM Plex Mono', monospace; font-size: .95rem; }
+
+        .toggle-row {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(27,26,23,.22);
+            padding: 14px 16px;
+            background: #FFFDF8;
+        }
+        .toggle-row .toggle-label { font-size: .95rem; font-weight: 500; }
+        .toggle-row .toggle-desc { font-size: .8rem; color: rgba(27,26,23,.55); }
+        .toggle-switch {
+            width: 48px; height: 26px;
+            border: 1px solid rgba(27,26,23,.3);
+            position: relative;
+            cursor: pointer;
+            padding: 0;
+            flex: none;
+            transition: background .15s ease;
+        }
+        .toggle-switch .knob {
+            position: absolute;
+            top: 2px;
+            width: 18px; height: 18px;
+            transition: left .16s ease;
+        }
+
+        .coords-hint { font-family: 'IBM Plex Mono', monospace; font-size: .72rem; color: rgba(27,26,23,.42); }
 
         @media (max-width: 768px) {
             .form-row { grid-template-columns: 1fr; }
@@ -727,14 +785,15 @@
             .container { padding: 0 1rem; }
             .role-selector { flex-direction: column; }
             .step-indicators { gap: 0.5rem; }
-            .step-dot { width: 32px; height: 32px; font-size: 0.8rem; }
-            .tooltip-content { width: 200px; left: auto; right: -50%; transform: translateX(0) translateY(-10px); }
+            .step-dot { width: 30px; height: 30px; font-size: 0.78rem; }
+            .step-dot-label { display: none; }
+            .tooltip-content { width: 200px; left: auto; right: -50%; transform: translateX(0) translateY(-6px); }
             .tooltip-content::after { left: 70%; }
             .modal-box { width: 95%; }
         }
 
         @media (max-width: 480px) {
-            .nav-container { flex-direction: column; align-items: center; }
+            .nav-container { flex-direction: column; align-items: flex-start; }
             .stats-grid { grid-template-columns: 1fr 1fr; }
             .step-navigation { flex-direction: column; }
             .step-navigation button { width: 100%; }
@@ -742,11 +801,12 @@
     </style>
 </head>
 <body>
+    <div id="toastContainer"></div>
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
-                <span class="brand-icon">⚡</span>
-                <span class="brand-text">- Hackathon - Casas inteligentes - Equipo 21 -</span>
+                <span class="brand-text">EnergIA</span>
+                <span class="brand-sub">Inteligencia para el consumo energético · Equipo 21</span>
             </div>
         </div>
     </nav>
@@ -754,42 +814,42 @@
     <div class="container">
         <!-- Login Section -->
         <div id="loginSection" class="card">
-            <h2>🔐 Acceso al Sistema</h2>
+            <h2>Acceso al sistema</h2>
             <div class="login-container">
                 <div class="role-selector" id="roleSelector">
                     <div class="role-option" onclick="seleccionarRol('usuario')" id="roleUsuario">
-                        <span class="icon">👤</span>
+                        <span class="icon mono">01</span>
                         <div class="title">Usuario</div>
-                        <div class="desc">Modo enseñanza - Guiado paso a paso</div>
+                        <div class="desc">Modo enseñanza · guiado paso a paso</div>
                     </div>
                     <div class="role-option" onclick="seleccionarRol('tecnico')" id="roleTecnico">
-                        <span class="icon">🔧</span>
+                        <span class="icon mono">02</span>
                         <div class="title">Técnico</div>
-                        <div class="desc">Modo profesional - Vista completa</div>
+                        <div class="desc">Modo profesional · vista completa</div>
                     </div>
                 </div>
 
                 <div id="formLogin" style="display: none;">
                     <div class="form-group">
-                        <label for="username">Nombre de Usuario</label>
+                        <label for="username">Nombre de usuario</label>
                         <input type="text" id="username" placeholder="Ingresa tu nombre de usuario" required>
                     </div>
                     <div class="form-group">
                         <label for="password">Contraseña</label>
                         <div class="password-wrapper">
                             <input type="password" id="password" placeholder="Ingresa tu contraseña" required>
-                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password')">
-                                👁️
+                            <button type="button" class="toggle-password mono" onclick="togglePasswordVisibility('password')">
+                                Ver
                             </button>
                         </div>
                     </div>
-                    <button class="btn-primary" onclick="login()">Iniciar Sesión</button>
-                    <button class="btn-register" onclick="mostrarRegistro()">📝 Registrarse</button>
-                    <button class="btn-secondary" onclick="analizarComoInvitado()" style="margin-top: 0.5rem;">🔓 Analizar sin registrarse</button>
-                    
-                    <div id="formRegistro" style="display: none; margin-top: 1rem; padding: 1rem; background: #f8f9fc; border-radius: 12px;">
-                        <h4 style="margin-bottom: 0.5rem;">📝 Crear cuenta</h4>
-                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">Regístrate para guardar tu historial y análisis futuros</p>
+                    <button class="btn-primary" onclick="login()">Iniciar sesión</button>
+                    <button class="btn-register" onclick="mostrarRegistro()">Registrarse</button>
+                    <button class="btn-secondary" onclick="analizarComoInvitado()" style="margin-top: 0.5rem;">Analizar sin registrarse</button>
+
+                    <div id="formRegistro" style="display: none; margin-top: 1rem; padding: 1rem; background: #F6F2E9; border: 1px solid rgba(27,26,23,.16);">
+                        <h4 style="margin-bottom: 0.5rem; font-weight: 500;">Crear cuenta</h4>
+                        <p style="font-size: 0.85rem; color: rgba(27,26,23,.6); margin-bottom: 0.5rem;">Regístrate para guardar tu historial y análisis futuros</p>
                         <button class="btn-register" onclick="registrarUsuario()">Confirmar registro</button>
                     </div>
                 </div>
@@ -800,63 +860,63 @@
         <div id="mainSection" style="display: none;">
             <div class="user-header">
                 <div class="user-info">
-                    <h2 id="userNameDisplay">👤 Usuario</h2>
+                    <h2 id="userNameDisplay">Usuario</h2>
                     <span class="role-badge" id="userRoleDisplay">Rol: Usuario</span>
                     <span class="role-badge" id="userModeDisplay">Modo: Enseñanza</span>
                 </div>
-                <button class="btn-danger" onclick="logout()">Cerrar Sesión</button>
+                <button class="btn-danger" onclick="logout()">Cerrar sesión</button>
             </div>
 
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card">
                     <div class="number" id="totalRegistros">0</div>
-                    <div class="label">Total Registros</div>
+                    <div class="label">Total registros</div>
                 </div>
                 <div class="stat-card">
                     <div class="number" id="promedioConsumo">0</div>
-                    <div class="label">Consumo Promedio (kWh)</div>
+                    <div class="label">Consumo promedio (kWh)</div>
                 </div>
                 <div class="stat-card">
                     <div class="number" id="mejorEficiencia">0</div>
-                    <div class="label">Mejor Eficiencia (kWh/m²)</div>
+                    <div class="label">Mejor eficiencia (kWh/m²)</div>
                 </div>
                 <div class="stat-card">
-                    <div class="number" id="tendenciaEstado">➡️</div>
+                    <div class="number" id="tendenciaEstado">→</div>
                     <div class="label">Tendencia</div>
                 </div>
             </div>
 
             <div class="tabs" id="tabsContainer">
                 <button class="tab-btn active" onclick="changeTab('form')">
-                    📝 Formulario
+                    Formulario
                     <span class="tooltip-trigger">
                         ?
                         <span class="tooltip-content">Completa el formulario para registrar tu consumo energético.</span>
                     </span>
                 </button>
                 <button class="tab-btn" onclick="changeTab('historial')">
-                    📊 Historial
+                    Historial
                     <span class="tooltip-trigger">
                         ?
                         <span class="tooltip-content">Visualiza todos tus registros anteriores con su nivel de eficiencia.</span>
                     </span>
                 </button>
                 <button class="tab-btn" onclick="changeTab('analisis')">
-                    📈 Análisis
+                    Análisis
                     <span class="tooltip-trigger">
                         ?
                         <span class="tooltip-content">Analiza tendencias y compara tu evolución en el tiempo.</span>
                     </span>
                 </button>
                 <button class="tab-btn" onclick="changeTab('recomendaciones')">
-                    💡 Recomendaciones
+                    Recomendaciones
                     <span class="tooltip-trigger">
                         ?
                         <span class="tooltip-content">Recibe sugerencias personalizadas para mejorar tu eficiencia energética.</span>
                     </span>
                 </button>
                 <button class="tab-btn" onclick="changeTab('json')" id="tabJson" style="display: none;">
-                    📋 JSON
+                    JSON
                     <span class="tooltip-trigger">
                         ?
                         <span class="tooltip-content">Exporta los datos en formato JSON con análisis completo.</span>
@@ -866,14 +926,14 @@
 
             <div id="formTab" class="tab-content active">
                 <div class="card" id="formCard">
-                    <h3 id="formTitle">📝 Formulario de Consumo Energético</h3>
+                    <h3 id="formTitle" style="font-weight: 500; letter-spacing: -.01em;">Formulario de consumo energético</h3>
                     <div id="formContent"></div>
                 </div>
             </div>
 
             <div id="historialTab" class="tab-content">
                 <div class="card">
-                    <h3>📊 Historial de Consumos</h3>
+                    <h3 style="font-weight: 500; letter-spacing: -.01em;">Historial de consumos</h3>
                     <div class="table-container">
                         <table id="historialTable">
                             <thead>
@@ -895,25 +955,25 @@
 
             <div id="analisisTab" class="tab-content">
                 <div class="card">
-                    <h3>📈 Análisis de Tendencias</h3>
+                    <h3 style="font-weight: 500; letter-spacing: -.01em;">Análisis de tendencias</h3>
                     <div class="analisis-grid">
                         <div class="analisis-card">
-                            <h4>Evolución Mensual</h4>
+                            <h4>Evolución mensual</h4>
                             <canvas id="tendenciaChart"></canvas>
                             <div id="tendenciaInfo" class="analisis-info"></div>
                         </div>
                         <div class="analisis-card">
-                            <h4>Comparativa Antes/Después</h4>
+                            <h4>Comparativa antes/después</h4>
                             <div id="comparativaInfo" class="analisis-info">
                                 <p>Selecciona dos fechas para comparar</p>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Fecha Antes</label>
+                                    <label>Fecha antes</label>
                                     <input type="date" id="fechaAntes">
                                 </div>
                                 <div class="form-group">
-                                    <label>Fecha Después</label>
+                                    <label>Fecha después</label>
                                     <input type="date" id="fechaDespues">
                                 </div>
                             </div>
@@ -926,33 +986,33 @@
 
             <div id="recomendacionesTab" class="tab-content">
                 <div class="card">
-                    <h3>💡 Recomendaciones Personalizadas</h3>
+                    <h3 style="font-weight: 500; letter-spacing: -.01em;">Recomendaciones personalizadas</h3>
                     <div id="recomendacionesContainer">
                         <div class="recomendacion-item">
-                            <div class="recomendacion-icon">🌡️</div>
+                            <div class="recomendacion-icon mono">01</div>
                             <div class="recomendacion-content">
-                                <h4>Optimización por Clima</h4>
+                                <h4>Optimización por clima</h4>
                                 <p id="climaRecomendacion">Analizando tu ubicación y consumo...</p>
                             </div>
                         </div>
                         <div class="recomendacion-item">
-                            <div class="recomendacion-icon">💡</div>
+                            <div class="recomendacion-icon mono">02</div>
                             <div class="recomendacion-content">
-                                <h4>Eficiencia Energética</h4>
+                                <h4>Eficiencia energética</h4>
                                 <p id="eficienciaRecomendacion">Basado en tus hábitos de consumo...</p>
                             </div>
                         </div>
                         <div class="recomendacion-item">
-                            <div class="recomendacion-icon">📊</div>
+                            <div class="recomendacion-icon mono">03</div>
                             <div class="recomendacion-content">
-                                <h4>Tendencias Estacionales</h4>
+                                <h4>Tendencias estacionales</h4>
                                 <p id="estacionalRecomendacion">Patrones de consumo según temporada...</p>
                             </div>
                         </div>
                         <div class="recomendacion-item">
-                            <div class="recomendacion-icon">🏠</div>
+                            <div class="recomendacion-icon mono">04</div>
                             <div class="recomendacion-content">
-                                <h4>Acciones Recomendadas</h4>
+                                <h4>Acciones recomendadas</h4>
                                 <p id="accionesRecomendacion">Basado en tu perfil de consumo...</p>
                             </div>
                         </div>
@@ -962,16 +1022,14 @@
 
             <div id="jsonTab" class="tab-content">
                 <div class="card">
-                    <h3>📋 Exportar Datos (JSON)</h3>
+                    <h3 style="font-weight: 500; letter-spacing: -.01em;">Exportar datos (JSON)</h3>
                     <div id="jsonOutput" class="json-output">No hay datos para exportar.</div>
-                    <button class="btn-secondary" onclick="copiarJSON()" style="margin-top: 1rem;">📋 Copiar JSON</button>
-                    <button class="btn-secondary" onclick="descargarJSON()" style="margin-top: 0.5rem;">💾 Descargar JSON</button>
+                    <button class="btn-secondary" onclick="copiarJSON()" style="margin-top: 1rem;">Copiar JSON</button>
+                    <button class="btn-secondary" onclick="descargarJSON()" style="margin-top: 0.5rem;">Descargar JSON</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Modal eliminado - autenticación ahora con backend -->
 
     <script>
         // ============================================
@@ -979,7 +1037,14 @@
         // ============================================
 
         const API_BASE_URL = '/api';
-        
+
+        const CIUDADES_COORDS = {
+            'CO-Bogota': { label: 'Bogotá, Colombia', lat: 4.6482784, lon: -74.272621 },
+            'CO-Medellin': { label: 'Medellín, Colombia', lat: 6.2442, lon: -75.5812 },
+            'MX-CDMX': { label: 'Ciudad de México, México', lat: 19.3906594, lon: -99.3084256 },
+            'BR-Brasilia': { label: 'Brasilia, Brasil', lat: -15.7723441, lon: -49.0461216 }
+        };
+
         const APP_STATE = {
             usuarioActual: null,
             rol: null,
@@ -988,11 +1053,43 @@
             historial: [],
             chartInstance: null,
             pasoActual: 1,
-            totalPasos: 5,
+            totalPasos: 3,
             usuarioAEliminar: null,
             ultimoResultado: null,
+            ultimaSolicitud: null,
             esInvitado: false
         };
+
+        // ============================================
+        // NOTIFICACIONES (reemplaza alert() nativo)
+        // ============================================
+
+        const TOAST_LABELS = { info: 'Aviso', success: 'Listo', warning: 'Atención', error: 'Error' };
+
+        function notify(mensaje, tipo = 'info', duracion = 5000) {
+            const container = document.getElementById('toastContainer');
+            if (!container) { window.alert(mensaje); return; }
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${tipo}`;
+            const label = document.createElement('span');
+            label.className = 'toast-label';
+            label.textContent = TOAST_LABELS[tipo] || TOAST_LABELS.info;
+            const body = document.createElement('div');
+            body.innerHTML = String(mensaje).replace(/\n/g, '<br>');
+            toast.appendChild(label);
+            toast.appendChild(body);
+
+            const cerrar = () => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 180);
+            };
+            toast.addEventListener('click', cerrar);
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            if (duracion) setTimeout(cerrar, duracion);
+        }
 
         // ============================================
         // FUNCIÓN PARA MOSTRAR/OCULTAR CONTRASEÑA
@@ -1001,14 +1098,14 @@
         function togglePasswordVisibility(inputId) {
             const input = document.getElementById(inputId);
             if (!input) return;
-            
+
             const button = input.parentElement.querySelector('.toggle-password');
             if (input.type === 'password') {
                 input.type = 'text';
-                button.textContent = '🙈';
+                button.textContent = 'Ocultar';
             } else {
                 input.type = 'password';
-                button.textContent = '👁️';
+                button.textContent = 'Ver';
             }
         }
 
@@ -1128,18 +1225,18 @@
             APP_STATE.esInvitado = true;
             APP_STATE.usuarioActual = username || 'Invitado';
             APP_STATE.rol = APP_STATE.rol || 'usuario';
-            
+
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('mainSection').style.display = 'block';
-            document.getElementById('userNameDisplay').textContent = `🔓 ${APP_STATE.usuarioActual} (Invitado)`;
-            
+            document.getElementById('userNameDisplay').textContent = `${APP_STATE.usuarioActual} (Invitado)`;
+
             const rolNombre = APP_STATE.rol === 'usuario' ? 'Usuario' : 'Técnico';
             document.getElementById('userRoleDisplay').textContent = `Rol: ${rolNombre}`;
             document.getElementById('userModeDisplay').textContent = 'Modo: Invitado';
-            
+
             document.getElementById('tabJson').style.display = 'none';
             document.body.classList.remove('teaching-mode');
-            
+
             cargarFormulario();
             mostrarBienvenidaInvitado();
         }
@@ -1147,17 +1244,17 @@
         function mostrarBienvenidaInvitado() {
             const banner = document.createElement('div');
             banner.style.cssText = `
-                background: #fff3cd;
-                color: #856404;
+                background: rgba(138,107,20,.08);
+                color: #8A6B14;
+                border-left: 3px solid #8A6B14;
                 padding: 1rem;
-                border-radius: 12px;
                 margin-bottom: 1rem;
                 text-align: center;
                 font-weight: 500;
             `;
-            banner.innerHTML = '🔓 <strong>Modo Invitado:</strong> Puedes realizar análisis sin registrarte. Para guardar historial y ver tendencias, <a href="#" onclick="cerrarSesionYMostrarLogin()" style="color: #0056b3;">inicia sesión</a> o regístrate.';
+            banner.innerHTML = '<strong>Modo invitado:</strong> puedes realizar análisis sin registrarte. Para guardar historial y ver tendencias, <a href="#" onclick="cerrarSesionYMostrarLogin()" style="color: #2F7A7E;">inicia sesión</a> o regístrate.';
             banner.className = 'bienvenida-banner';
-            
+
             const formCard = document.getElementById('formCard');
             const existing = formCard.querySelector('.bienvenida-banner');
             if (existing) existing.remove();
@@ -1180,48 +1277,42 @@
         async function registrarUsuario() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
-            
+
             if (!APP_STATE.rol) {
-                alert('⚠️ Primero selecciona si eres Usuario o Técnico');
+                notify('Primero selecciona si eres Usuario o Técnico', 'warning');
                 return;
             }
-            
+
             if (!username || !password) {
-                alert('⚠️ Por favor ingresa un nombre de usuario y contraseña');
+                notify('Por favor ingresa un nombre de usuario y contraseña', 'warning');
                 return;
             }
-            
+
             if (username.length < 3) {
-                alert('⚠️ El nombre de usuario debe tener al menos 3 caracteres');
+                notify('El nombre de usuario debe tener al menos 3 caracteres', 'warning');
                 return;
             }
-            
+
             if (password.length < 4) {
-                alert('⚠️ La contraseña debe tener al menos 4 caracteres');
+                notify('La contraseña debe tener al menos 4 caracteres', 'warning');
                 return;
             }
-            
+
             const result = await registrarUsuarioAPI(username, password);
-            
+
             if (result.success) {
-                alert(`✅ Usuario "${username}" registrado correctamente.\n\nAhora puedes iniciar sesión.`);
+                notify(`Usuario "${username}" registrado correctamente.\n\nAhora puedes iniciar sesión.`, 'success');
                 document.getElementById('formRegistro').style.display = 'none';
                 document.getElementById('password').value = '';
                 document.getElementById('password').focus();
             } else {
                 if (result.status === 409) {
-                    alert('⚠️ Este usuario ya existe. Por favor elige otro nombre.');
+                    notify('Este usuario ya existe. Por favor elige otro nombre.', 'warning');
                 } else {
-                    alert(`❌ Error al registrar: ${result.error}`);
+                    notify(`Error al registrar: ${result.error}`, 'error');
                 }
             }
         }
-
-        // ============================================
-        // MODAL DE ELIMINACIÓN (No usado con backend)
-        // ============================================
-
-        // Modal eliminado - autenticación ahora con backend
 
         // ============================================
         // AUTENTICACIÓN
@@ -1230,47 +1321,47 @@
         async function login() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
-            
+
             if (!APP_STATE.rol) {
-                alert('⚠️ Primero selecciona si eres Usuario o Técnico');
+                notify('Primero selecciona si eres Usuario o Técnico', 'warning');
                 return;
             }
-            
+
             if (!username || !password) {
-                alert('⚠️ Por favor ingresa usuario y contraseña');
+                notify('Por favor ingresa usuario y contraseña', 'warning');
                 return;
             }
-            
+
             const result = await loginAPI(username, password);
-            
+
             if (result.success) {
                 const { access_token, refresh_token } = result.data;
                 guardarSesion(access_token, refresh_token, username);
                 APP_STATE.rol = APP_STATE.rol || 'usuario';
                 APP_STATE.esInvitado = false;
-                
+
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('mainSection').style.display = 'block';
-                document.getElementById('userNameDisplay').textContent = `👤 ${username}`;
-                
+                document.getElementById('userNameDisplay').textContent = username;
+
                 const rolNombre = APP_STATE.rol === 'usuario' ? 'Usuario' : 'Técnico';
                 const modoNombre = APP_STATE.rol === 'usuario' ? 'Enseñanza' : 'Profesional';
                 document.getElementById('userRoleDisplay').textContent = `Rol: ${rolNombre}`;
                 document.getElementById('userModeDisplay').textContent = `Modo: ${modoNombre}`;
-                
+
                 document.getElementById('tabJson').style.display = APP_STATE.rol === 'tecnico' ? 'inline-flex' : 'none';
-                
+
                 if (APP_STATE.rol === 'usuario') {
                     document.body.classList.add('teaching-mode');
                 } else {
                     document.body.classList.remove('teaching-mode');
                 }
-                
+
                 document.getElementById('password').value = '';
                 document.getElementById('password').type = 'password';
                 const btn = document.querySelector('#password').parentElement.querySelector('.toggle-password');
-                if (btn) btn.textContent = '👁️';
-                
+                if (btn) btn.textContent = 'Ver';
+
                 await cargarHistorialDesdeAPI();
                 iniciarRecomendaciones();
                 actualizarStats();
@@ -1278,14 +1369,14 @@
                 mostrarBienvenida();
             } else {
                 if (result.status === 401 || result.status === 403) {
-                    alert('❌ Usuario o contraseña incorrectos');
+                    notify('Usuario o contraseña incorrectos', 'error');
                 } else {
-                    alert(`❌ Error al iniciar sesión: ${result.error}`);
+                    notify(`Error al iniciar sesión: ${result.error}`, 'error');
                 }
                 document.getElementById('password').value = '';
                 document.getElementById('password').type = 'password';
                 const btn = document.querySelector('#password').parentElement.querySelector('.toggle-password');
-                if (btn) btn.textContent = '👁️';
+                if (btn) btn.textContent = 'Ver';
                 document.getElementById('password').focus();
             }
         }
@@ -1300,7 +1391,7 @@
             document.getElementById('password').value = '';
             document.getElementById('password').type = 'password';
             const btn = document.querySelector('#password').parentElement.querySelector('.toggle-password');
-            if (btn) btn.textContent = '👁️';
+            if (btn) btn.textContent = 'Ver';
             document.getElementById('formLogin').style.display = 'none';
             document.getElementById('formRegistro').style.display = 'none';
             document.getElementById('roleUsuario').classList.remove('selected');
@@ -1311,28 +1402,28 @@
         }
 
         function mostrarBienvenida() {
-            const mensaje = APP_STATE.rol === 'usuario' 
-                ? '👋 ¡Bienvenido! Te guiaremos paso a paso para registrar tu consumo energético. ¡Es muy fácil!'
-                : '👋 ¡Bienvenido Técnico! Tienes acceso a todas las herramientas y datos completos.';
-            
+            const mensaje = APP_STATE.rol === 'usuario'
+                ? '¡Bienvenido! Te guiaremos paso a paso para registrar tu consumo energético.'
+                : '¡Bienvenido Técnico! Tienes acceso a todas las herramientas y datos completos.';
+
             const banner = document.createElement('div');
             banner.style.cssText = `
-                background: ${APP_STATE.rol === 'usuario' ? '#d4edda' : '#cce5ff'};
-                color: ${APP_STATE.rol === 'usuario' ? '#155724' : '#004085'};
+                background: ${APP_STATE.rol === 'usuario' ? 'rgba(46,107,62,.08)' : 'rgba(47,122,126,.08)'};
+                color: ${APP_STATE.rol === 'usuario' ? '#2E6B3E' : '#1F5457'};
+                border-left: 3px solid ${APP_STATE.rol === 'usuario' ? '#2E6B3E' : '#2F7A7E'};
                 padding: 1rem;
-                border-radius: 12px;
                 margin-bottom: 1rem;
                 text-align: center;
                 font-weight: 500;
             `;
             banner.textContent = mensaje;
             banner.className = 'bienvenida-banner';
-            
+
             const formCard = document.getElementById('formCard');
             const existing = formCard.querySelector('.bienvenida-banner');
             if (existing) existing.remove();
             formCard.insertBefore(banner, formCard.firstChild);
-            
+
             setTimeout(() => { if (banner.parentNode) banner.remove(); }, 8000);
         }
 
@@ -1342,178 +1433,191 @@
 
         function cargarFormulario() {
             const container = document.getElementById('formContent');
-            
+
             if (APP_STATE.rol === 'usuario') {
                 container.innerHTML = generarFormularioUsuario();
                 iniciarPasosUsuario();
+                actualizarCoordsUsuario();
             } else {
                 container.innerHTML = generarFormularioTecnico();
             }
         }
 
+        function actualizarCoordsUsuario() {
+            const select = document.getElementById('region_pais');
+            const hint = document.getElementById('coordsHint');
+            const latInput = document.getElementById('latitud');
+            const lonInput = document.getElementById('longitud');
+            if (!select) return;
+            const ciudad = CIUDADES_COORDS[select.value] || CIUDADES_COORDS['CO-Bogota'];
+            if (latInput) latInput.value = ciudad.lat;
+            if (lonInput) lonInput.value = ciudad.lon;
+            if (hint) hint.textContent = `lat ${ciudad.lat.toFixed(4)} · lon ${ciudad.lon.toFixed(4)}`;
+        }
+
         function generarFormularioUsuario() {
             return `
                 <div class="step-indicators">
-                    <div class="step-dot active" data-step="1" onclick="irPaso(1)">1</div>
-                    <div class="step-dot" data-step="2" onclick="irPaso(2)">2</div>
-                    <div class="step-dot" data-step="3" onclick="irPaso(3)">3</div>
-                    <div class="step-dot" data-step="4" onclick="irPaso(4)">4</div>
-                    <div class="step-dot" data-step="5" onclick="irPaso(5)">5</div>
+                    <div class="step-dot-wrap"><div class="step-dot active" data-step="1" onclick="irPaso(1)">1</div><span class="step-dot-label">Tu vivienda</span></div>
+                    <div class="step-dot-wrap"><div class="step-dot" data-step="2" onclick="irPaso(2)">2</div><span class="step-dot-label">Tu consumo</span></div>
+                    <div class="step-dot-wrap"><div class="step-dot" data-step="3" onclick="irPaso(3)">3</div><span class="step-dot-label">Tu equipamiento</span></div>
                 </div>
 
                 <form id="consumoForm">
                     <div class="step-content active" data-step="1">
-                        <h4>📍 Paso 1: Ubicación</h4>
-                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> La ubicación se usa para consultar el clima actual y darte recomendaciones más precisas.</div>
+                        <h4>Paso 1: Tu vivienda</h4>
+                        <div class="teaching-tip"><strong>¿Dónde encuentro esto?</strong> La ciudad define la latitud y longitud que se envían a la consulta de clima. La superficie la puedes medir o revisar en los planos de tu vivienda.</div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Latitud <span class="tooltip-trigger">?<span class="tooltip-content">Coordenada de latitud para información climática.</span></span></label>
-                                <input type="number" id="latitud" step="any" placeholder="Ej: 4.7110" required>
-                                <div class="help-text">📍 Usa el botón "Obtener ubicación" para llenar automáticamente.</div>
+                                <label>Tipo de inmueble</label>
+                                <div style="display: flex; border: 1px solid rgba(27,26,23,.22);" id="tipoInmuebleGroup">
+                                    <button type="button" class="tipo-inmueble-btn" data-val="Casa" onclick="seleccionarTipoInmueble('Casa')" style="flex: 1; padding: 11px 4px; font-size: 14px; border: 0; border-right: 1px solid rgba(27,26,23,.14); background: #1B1A17; color: #F6F2E9; cursor: pointer;">Casa</button>
+                                    <button type="button" class="tipo-inmueble-btn" data-val="Apartamento" onclick="seleccionarTipoInmueble('Apartamento')" style="flex: 1; padding: 11px 4px; font-size: 14px; border: 0; border-right: 1px solid rgba(27,26,23,.14); background: #FFFDF8; color: #1B1A17; cursor: pointer;">Apartamento</button>
+                                    <button type="button" class="tipo-inmueble-btn" data-val="Local" onclick="seleccionarTipoInmueble('Local')" style="flex: 1; padding: 11px 4px; font-size: 14px; border: 0; background: #FFFDF8; color: #1B1A17; cursor: pointer;">Local</button>
+                                </div>
+                                <input type="hidden" id="tipo_inmueble" value="Casa">
                             </div>
                             <div class="form-group">
-                                <label>Longitud <span class="tooltip-trigger">?<span class="tooltip-content">Coordenada de longitud para información climática.</span></span></label>
-                                <input type="number" id="longitud" step="any" placeholder="Ej: -74.0721" required>
-                                <div class="help-text">📍 Usa el botón "Obtener ubicación" para llenar automáticamente.</div>
+                                <label>Ciudad <span class="tooltip-trigger">?<span class="tooltip-content">La ciudad define la ubicación usada para consultar el clima actual.</span></span></label>
+                                <select id="region_pais" required onchange="actualizarCoordsUsuario()">
+                                    <option value="CO-Bogota">Bogotá, Colombia</option>
+                                    <option value="CO-Medellin">Medellín, Colombia</option>
+                                    <option value="MX-CDMX">Ciudad de México, México</option>
+                                    <option value="BR-Brasilia">Brasilia, Brasil</option>
+                                </select>
+                                <span class="coords-hint" id="coordsHint"></span>
+                                <input type="hidden" id="latitud">
+                                <input type="hidden" id="longitud">
                             </div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group" style="flex: 1; display: flex; align-items: flex-end;">
-                                <button type="button" class="btn-secondary" onclick="obtenerUbicacion()" style="width: 100%;">📍 Obtener ubicación actual</button>
+                            <div class="form-group">
+                                <label>Superficie · m² <span class="tooltip-trigger">?<span class="tooltip-content">Área total del inmueble en metros cuadrados.</span></span></label>
+                                <input type="number" id="superficie_m2" step="0.01" placeholder="Ej: 80" required>
+                                <div class="help-text">Revisa los planos de tu propiedad o mide el área.</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Ocupantes <span class="tooltip-trigger">?<span class="tooltip-content">Número de personas que ocupan el inmueble.</span></span></label>
+                                <input type="number" id="habitantes_ocupantes" placeholder="Ej: 4" required min="1">
+                                <div class="help-text">Cantidad de personas que habitan el inmueble.</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="step-content" data-step="2">
-                        <h4>⚡ Paso 2: Consumo y Espacio</h4>
-                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> El consumo lo encuentras en tu <strong>factura de electricidad</strong>. La superficie la puedes medir o revisar en los planos de tu vivienda.</div>
+                        <h4>Paso 2: Tu consumo</h4>
+                        <div class="teaching-tip"><strong>¿Dónde encuentro esto?</strong> Toma el consumo del último recibo. Las horas de alto consumo son los momentos del día donde más energía usas.</div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Consumo (kWh) <span class="tooltip-trigger">?<span class="tooltip-content">Consumo total de energía en kilovatios-hora. Lo encuentras en tu factura eléctrica.</span></span></label>
+                                <label>Consumo mensual · kWh <span class="tooltip-trigger">?<span class="tooltip-content">Consumo total de energía en kilovatios-hora. Lo encuentras en tu factura eléctrica.</span></span></label>
                                 <input type="number" id="consumo_kwh" step="0.01" placeholder="Ej: 420" required>
-                                <div class="help-text">📄 Busca en tu factura el consumo mensual en kWh.</div>
+                                <div class="help-text">Busca en tu factura el consumo mensual en kWh.</div>
                             </div>
                             <div class="form-group">
-                                <label>Superficie (m²) <span class="tooltip-trigger">?<span class="tooltip-content">Área total de tu vivienda o negocio en metros cuadrados.</span></span></label>
-                                <input type="number" id="superficie_m2" step="0.01" placeholder="Ej: 80" required>
-                                <div class="help-text">📐 Revisa los planos de tu propiedad o mide el área.</div>
+                                <label>Equipos eléctricos <span class="tooltip-trigger">?<span class="tooltip-content">Número total de equipos eléctricos en tu hogar o negocio.</span></span></label>
+                                <input type="number" id="cantidad_equipos" placeholder="Ej: 10" required min="0">
+                                <div class="help-text">Cuenta todos los electrodomésticos y equipos electrónicos.</div>
                             </div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Habitantes/Ocupantes <span class="tooltip-trigger">?<span class="tooltip-content">Número de personas que viven en la vivienda.</span></span></label>
-                                <input type="number" id="habitantes_ocupantes" placeholder="Ej: 4" required min="1">
-                                <div class="help-text">👥 Cantidad de personas que habitan el inmueble.</div>
+                            <div class="slider-row">
+                                <div class="slider-head">
+                                    <label style="margin: 0;">Horas diarias de alto consumo</label>
+                                    <span id="horasLabel">8 h</span>
+                                </div>
+                                <input type="range" min="0" max="24" step="1" id="horas_alto_consumo" value="8" oninput="document.getElementById('horasLabel').textContent = this.value + ' h'">
                             </div>
-                            <div class="form-group">
-                                <label>Capacidad solar (kWp) <span class="tooltip-trigger">?<span class="tooltip-content">Capacidad instalada de paneles solares en kilovatios pico.</span></span></label>
-                                <input type="number" id="capacidad_solar_kwp" step="0.01" placeholder="Ej: 0" value="0">
-                                <div class="help-text">☀️ Si no tienes paneles solares, deja en 0.</div>
+                            <div class="toggle-row">
+                                <div>
+                                    <div class="toggle-label">Uso en horario pico</div>
+                                    <div class="toggle-desc">Concentras consumo entre 18:00 y 21:00</div>
+                                </div>
+                                <button type="button" class="toggle-switch" id="picoToggle" onclick="toggleSwitch('uso_horario_pico','picoToggle')" style="background: #F6F2E9;">
+                                    <span class="knob" style="left: 3px; background: #1B1A17;"></span>
+                                </button>
+                                <input type="hidden" id="uso_horario_pico" value="false">
                             </div>
                         </div>
                     </div>
 
                     <div class="step-content" data-step="3">
-                        <h4>🔌 Paso 3: Equipos y Consumo</h4>
-                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> Cuenta los equipos eléctricos que tienes. Las horas de alto consumo son los momentos del día donde más energía usas.</div>
+                        <h4>Paso 3: Tu equipamiento</h4>
+                        <div class="teaching-tip"><strong>¿Dónde encuentro esto?</strong> El factor de potencia está en las especificaciones técnicas de tus equipos. Si no sabes un valor exacto, la estimación sirve.</div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Cantidad de equipos <span class="tooltip-trigger">?<span class="tooltip-content">Número total de equipos eléctricos en tu hogar o negocio.</span></span></label>
-                                <input type="number" id="cantidad_equipos" placeholder="Ej: 10" required min="0">
-                                <div class="help-text">🔌 Cuenta todos los electrodomésticos y equipos electrónicos.</div>
+                            <div class="slider-row">
+                                <div class="slider-head"><label style="margin: 0;">Iluminación LED</label><span id="ledLabel">60 %</span></div>
+                                <input type="range" min="0" max="100" step="5" id="porcentaje_iluminacion_led_pct" value="60" oninput="document.getElementById('ledLabel').textContent = this.value + ' %'; document.getElementById('porcentaje_iluminacion_led').value = (this.value/100).toFixed(2);">
+                                <input type="hidden" id="porcentaje_iluminacion_led" value="0.60">
                             </div>
-                            <div class="form-group">
-                                <label>Horas alto consumo <span class="tooltip-trigger">?<span class="tooltip-content">Horas al día en las que más energía consumes.</span></span></label>
-                                <input type="number" id="horas_alto_consumo" placeholder="Ej: 8" required min="0" max="24">
-                                <div class="help-text">⏰ Ejemplo: si usas muchos equipos de 6pm a 10pm, son 4 horas.</div>
+                            <div class="slider-row">
+                                <div class="slider-head"><label style="margin: 0;">Equipos inteligentes</label><span id="smartLabel">30 %</span></div>
+                                <input type="range" min="0" max="100" step="5" id="porcentaje_equipos_inteligentes_pct" value="30" oninput="document.getElementById('smartLabel').textContent = this.value + ' %'; document.getElementById('porcentaje_equipos_inteligentes').value = (this.value/100).toFixed(2);">
+                                <input type="hidden" id="porcentaje_equipos_inteligentes" value="0.30">
+                            </div>
+                            <div class="slider-row">
+                                <div class="slider-head"><label style="margin: 0;">Antigüedad promedio de equipos</label><span id="antigLabel">7 años</span></div>
+                                <input type="range" min="0" max="30" step="1" id="antiguedad_promedio_ponderada" value="7" oninput="document.getElementById('antigLabel').textContent = this.value + ' años'">
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Factor de potencia <span class="tooltip-trigger">?<span class="tooltip-content">Indica la eficiencia eléctrica. Entre 0.01 y 1.0.</span></span></label>
+                                <input type="number" id="factor_potencia" step="0.01" placeholder="Ej: 0.92" required min="0.01" max="1" style="max-width: 200px;">
+                                <div class="help-text">Valor entre 0.01 y 1.0. 0.92 es excelente.</div>
+                            </div>
+                            <div class="toggle-row">
+                                <div>
+                                    <div class="toggle-label">Paneles solares</div>
+                                    <div class="toggle-desc">Si activas, indica la capacidad instalada</div>
+                                </div>
+                                <button type="button" class="toggle-switch" id="panelToggle" onclick="togglePaneles()" style="background: #F6F2E9;">
+                                    <span class="knob" style="left: 3px; background: #1B1A17;"></span>
+                                </button>
+                                <input type="hidden" id="tiene_paneles_solares" value="false">
+                            </div>
+                            <div class="form-group" id="solarGroup" style="display: none; grid-column: 1 / -1;">
+                                <label>Capacidad solar · kWp</label>
+                                <input type="number" id="capacidad_solar_kwp" step="0.01" placeholder="Ej: 3" style="max-width: 200px;">
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Uso horario pico <span class="tooltip-trigger">?<span class="tooltip-content">Indica si tu consumo principal ocurre en horas de mayor demanda.</span></span></label>
-                                <select id="uso_horario_pico" required>
-                                    <option value="true">Sí</option>
-                                    <option value="false">No</option>
-                                </select>
-                                <div class="help-text">⏰ Las horas pico suelen ser de 6pm a 10pm.</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Tiene paneles solares <span class="tooltip-trigger">?<span class="tooltip-content">Indica si tu propiedad cuenta con paneles solares.</span></span></label>
-                                <select id="tiene_paneles_solares" required>
-                                    <option value="false">No</option>
-                                    <option value="true">Sí</option>
-                                </select>
-                                <div class="help-text">☀️ Selecciona "Sí" si tienes paneles solares instalados.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="step-content" data-step="4">
-                        <h4>💡 Paso 4: Eficiencia y Tecnología</h4>
-                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> El factor de potencia está en las especificaciones técnicas de tus equipos. Los porcentajes se ingresan como fracción (ej: 0.60 = 60%).</div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Factor de potencia <span class="tooltip-trigger">?<span class="tooltip-content">Indica la eficiencia eléctrica. Entre 0.7 y 1.0.</span></span></label>
-                                <input type="number" id="factor_potencia" step="0.01" placeholder="Ej: 0.92" required min="0.01" max="1">
-                                <div class="help-text">⚡ Valor entre 0.01 y 1.0. 0.92 es excelente.</div>
-                            </div>
-                            <div class="form-group">
-                                <label>% Iluminación LED (fracción) <span class="tooltip-trigger">?<span class="tooltip-content">Porcentaje de luminarias LED como fracción (0-1).</span></span></label>
-                                <input type="number" id="porcentaje_iluminacion_led" step="0.01" placeholder="Ej: 0.60" required min="0" max="1">
-                                <div class="help-text">💡 Ejemplo: 0.60 significa que 60% son LED.</div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>% Equipos inteligentes (fracción) <span class="tooltip-trigger">?<span class="tooltip-content">Porcentaje de equipos inteligentes como fracción (0-1).</span></span></label>
-                                <input type="number" id="porcentaje_equipos_inteligentes" step="0.01" placeholder="Ej: 0.30" required min="0" max="1">
-                                <div class="help-text">🤖 Ejemplo: 0.30 significa que 30% son inteligentes.</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Antigüedad promedio (años) <span class="tooltip-trigger">?<span class="tooltip-content">Edad promedio de tus equipos en años.</span></span></label>
-                                <input type="number" id="antiguedad_promedio_ponderada" step="0.1" placeholder="Ej: 6.5" required min="0">
-                                <div class="help-text">📅 Calcula el promedio de años de tus equipos principales.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="step-content" data-step="5">
-                        <h4>🏷️ Paso 5: Categorías y Finalización</h4>
-                        <div class="teaching-tip"><strong>💡 ¿Dónde encuentro esto?</strong> El tipo de inmueble es según el uso principal de tu propiedad. La región es la ciudad/país donde vives.</div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Tipo de inmueble <span class="tooltip-trigger">?<span class="tooltip-content">Clasifica tu propiedad según su uso principal.</span></span></label>
-                                <select id="tipo_inmueble" required>
-                                    <option value="Casa">Casa</option>
-                                    <option value="Apartamento">Apartamento</option>
-                                    <option value="Local">Local</option>
-                                </select>
-                                <div class="help-text">🏠 Selecciona según el uso principal de tu propiedad.</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Región/País <span class="tooltip-trigger">?<span class="tooltip-content">Ciudad/país donde se encuentra tu propiedad.</span></span></label>
-                                <select id="region_pais" required>
-                                    <option value="CO-Bogota">CO - Bogotá</option>
-                                    <option value="CO-Medellin">CO - Medellín</option>
-                                    <option value="MX-CDMX">MX - Ciudad de México</option>
-                                    <option value="BR-Brasilia">BR - Brasilia</option>
-                                </select>
-                                <div class="help-text">📍 Selecciona la ciudad/región donde vives.</div>
-                            </div>
-                        </div>
-                        <div style="background: #f8f9fc; padding: 1rem; border-radius: 12px; margin-top: 1rem;">
-                            <p style="color: #4a4a6a; font-weight: 600;">✅ Resumen de tus datos:</p>
-                            <p id="resumenDatos" style="color: #666; font-size: 0.9rem;"></p>
+                        <div style="background: #F6F2E9; border: 1px solid rgba(27,26,23,.16); padding: 1.25rem 1.5rem; margin-top: 1.5rem;">
+                            <span class="mono" style="font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(27,26,23,.5);">Resumen de tus datos</span>
+                            <div id="resumenDatos" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 14px 20px; margin-top: 14px;"></div>
                         </div>
                     </div>
 
                     <div class="step-navigation">
-                        <button type="button" class="btn-prev" id="btnPrev" onclick="pasoAnterior()">⬅ Anterior</button>
-                        <button type="button" class="btn-next" id="btnNext" onclick="pasoSiguiente()">Siguiente ➡</button>
-                        <button type="button" class="btn-submit" id="btnSubmit" style="display: none;" onclick="guardarAnalisis()">🔍 Analizar</button>
+                        <button type="button" class="btn-prev" id="btnPrev" onclick="pasoAnterior()">Anterior</button>
+                        <button type="button" class="btn-next" id="btnNext" onclick="pasoSiguiente()">Continuar</button>
+                        <button type="button" class="btn-submit" id="btnSubmit" style="display: none;" onclick="guardarAnalisis()">Analizar</button>
                     </div>
                 </form>
             `;
+        }
+
+        function toggleSwitch(hiddenId, btnId) {
+            const hidden = document.getElementById(hiddenId);
+            const btn = document.getElementById(btnId);
+            const knob = btn.querySelector('.knob');
+            const on = hidden.value !== 'true';
+            hidden.value = on ? 'true' : 'false';
+            btn.style.background = on ? '#2F7A7E' : '#F6F2E9';
+            knob.style.left = on ? '25px' : '3px';
+            knob.style.background = on ? '#FFFDF8' : '#1B1A17';
+        }
+
+        function togglePaneles() {
+            toggleSwitch('tiene_paneles_solares', 'panelToggle');
+            const activo = document.getElementById('tiene_paneles_solares').value === 'true';
+            const solarGroup = document.getElementById('solarGroup');
+            if (solarGroup) solarGroup.style.display = activo ? 'flex' : 'none';
+        }
+
+        function seleccionarTipoInmueble(valor) {
+            document.getElementById('tipo_inmueble').value = valor;
+            document.querySelectorAll('.tipo-inmueble-btn').forEach(btn => {
+                const activo = btn.dataset.val === valor;
+                btn.style.background = activo ? '#1B1A17' : '#FFFDF8';
+                btn.style.color = activo ? '#F6F2E9' : '#1B1A17';
+            });
         }
 
         function generarFormularioTecnico() {
@@ -1523,7 +1627,7 @@
                         <div class="form-group"><label>Latitud</label><input type="number" id="latitud" step="any" placeholder="Ej: 4.7110" required></div>
                         <div class="form-group"><label>Longitud</label><input type="number" id="longitud" step="any" placeholder="Ej: -74.0721" required></div>
                         <div class="form-group" style="flex: 1; display: flex; align-items: flex-end;">
-                            <button type="button" class="btn-secondary" onclick="obtenerUbicacion()" style="width: 100%;">📍 Obtener ubicación</button>
+                            <button type="button" class="btn-secondary" onclick="obtenerUbicacion()" style="width: 100%;">Obtener ubicación</button>
                         </div>
                     </div>
                     <div class="form-row">
@@ -1571,7 +1675,7 @@
                             </select>
                         </div>
                     </div>
-                    <button type="button" class="btn-primary" onclick="guardarAnalisisTecnico()">🔍 Analizar</button>
+                    <button type="button" class="btn-primary" onclick="guardarAnalisisTecnico()">Analizar</button>
                 </form>
             `;
         }
@@ -1608,13 +1712,13 @@
             let valid = true;
             inputs.forEach(input => {
                 if (!input.value || input.value.trim() === '') {
-                    input.style.borderColor = '#ff6b6b';
+                    input.style.borderColor = '#A33A22';
                     valid = false;
                 } else {
-                    input.style.borderColor = '#e1e5ed';
+                    input.style.borderColor = 'rgba(27,26,23,.22)';
                 }
             });
-            if (!valid) alert('⚠️ Por favor completa todos los campos requeridos en este paso.');
+            if (!valid) notify('Por favor completa todos los campos requeridos en este paso.', 'warning');
             return valid;
         }
 
@@ -1640,17 +1744,32 @@
 
         function actualizarResumenUsuario() {
             const datos = {
-                consumo: document.getElementById('consumo_kwh')?.value || 'No especificado',
-                superficie: document.getElementById('superficie_m2')?.value || 'No especificado',
-                equipos: document.getElementById('cantidad_equipos')?.value || 'No especificado',
-                habitantes: document.getElementById('habitantes_ocupantes')?.value || 'No especificado',
-                tipo: document.getElementById('tipo_inmueble')?.value || 'No especificado',
-                region: document.getElementById('region_pais')?.value || 'No especificado'
+                consumo: document.getElementById('consumo_kwh')?.value,
+                superficie: document.getElementById('superficie_m2')?.value,
+                equipos: document.getElementById('cantidad_equipos')?.value,
+                habitantes: document.getElementById('habitantes_ocupantes')?.value,
+                tipo: document.getElementById('tipo_inmueble')?.value,
+                region: document.getElementById('region_pais')?.value
             };
             const resumen = document.getElementById('resumenDatos');
-            if (resumen) {
-                resumen.innerHTML = `🏠 <strong>Inmueble:</strong> ${datos.tipo} | 📍 <strong>Región:</strong> ${datos.region}<br>⚡ <strong>Consumo:</strong> ${datos.consumo} kWh | 📏 <strong>Superficie:</strong> ${datos.superficie} m² | 🔌 <strong>Equipos:</strong> ${datos.equipos} | 👥 <strong>Habitantes:</strong> ${datos.habitantes}`;
-            }
+            if (!resumen) return;
+
+            const ciudadLabel = (CIUDADES_COORDS[datos.region] || {}).label || datos.region || '—';
+            const items = [
+                ['Inmueble', datos.tipo || '—'],
+                ['Ciudad', ciudadLabel],
+                ['Consumo', datos.consumo ? `${datos.consumo} kWh` : '—'],
+                ['Superficie', datos.superficie ? `${datos.superficie} m²` : '—'],
+                ['Equipos', datos.equipos ?? '—'],
+                ['Habitantes', datos.habitantes ?? '—']
+            ];
+
+            resumen.innerHTML = items.map(([label, value]) => `
+                <div>
+                    <span class="mono" style="display: block; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: rgba(27,26,23,.5);">${label}</span>
+                    <span style="font-size: 14px; font-weight: 500;">${value}</span>
+                </div>
+            `).join('');
         }
 
         // ============================================
@@ -1659,7 +1778,7 @@
 
         function obtenerUbicacion() {
             if (!navigator.geolocation) {
-                alert('Tu navegador no soporta geolocalización');
+                notify('Tu navegador no soporta geolocalización', 'error');
                 return;
             }
             navigator.geolocation.getCurrentPosition(
@@ -1673,14 +1792,14 @@
                     obtenerClimaPorUbicacion(position.coords.latitude, position.coords.longitude);
                 },
                 function(error) {
-                    alert('Error al obtener ubicación: ' + error.message);
+                    notify('Error al obtener ubicación: ' + error.message, 'error');
                 }
             );
         }
 
         function obtenerClimaPorUbicacion(lat, lon) {
-            const mensaje = `📍 Ubicación obtenida: ${lat.toFixed(4)}, ${lon.toFixed(4)}\nLa información climática se consultará al realizar el análisis.`;
-            alert(APP_STATE.rol === 'usuario' ? mensaje + '\n\n💡 El clima actual se usará para darte recomendaciones más precisas.' : mensaje);
+            const mensaje = `Ubicación obtenida: ${lat.toFixed(4)}, ${lon.toFixed(4)}\nLa información climática se consultará al realizar el análisis.`;
+            notify(APP_STATE.rol === 'usuario' ? mensaje + '\n\nEl clima actual se usará para darte recomendaciones más precisas.' : mensaje, 'info');
         }
 
         // ============================================
@@ -1692,44 +1811,46 @@
                 if (!validarPasoUsuario(i)) {
                     APP_STATE.pasoActual = i;
                     actualizarPasosUsuario();
-                    alert('⚠️ Por favor completa todos los campos requeridos.');
+                    notify('Por favor completa todos los campos requeridos.', 'warning');
                     return;
                 }
             }
             const formData = recolectarDatosFormulario();
             if (!formData) return;
-            
+
             await enviarAnalisisAlBackend(formData);
         }
 
         async function guardarAnalisisTecnico() {
             const formData = recolectarDatosFormulario();
             if (!formData) return;
-            
+
             await enviarAnalisisAlBackend(formData);
         }
 
         async function enviarAnalisisAlBackend(formData) {
+            APP_STATE.ultimaSolicitud = formData;
+
             const btnSubmit = document.querySelector('.btn-submit, #consumoFormTecnico .btn-primary');
             if (btnSubmit) {
                 btnSubmit.disabled = true;
-                btnSubmit.textContent = '⏳ Analizando...';
+                btnSubmit.textContent = 'Analizando…';
             }
-            
+
             const result = await enviarAnalisis(formData);
-            
+
             if (btnSubmit) {
                 btnSubmit.disabled = false;
-                btnSubmit.textContent = '🔍 Analizar';
+                btnSubmit.textContent = 'Analizar';
             }
-            
+
             if (result.success) {
                 APP_STATE.ultimoResultado = result.data;
-                
+
                 if (!APP_STATE.esInvitado && APP_STATE.token) {
                     await cargarHistorialDesdeAPI();
                 }
-                
+
                 mostrarResultadoAnalisis(result.data);
                 changeTab('resultado');
             } else {
@@ -1737,35 +1858,92 @@
             }
         }
 
+        const CAT_COLOR = { EFICIENTE: '#2E6B3E', MODERADO: '#8A6B14', INEFICIENTE: '#A33A22' };
+        const CAT_LABEL = { EFICIENTE: 'Eficiente', MODERADO: 'Moderado', INEFICIENTE: 'Ineficiente' };
+
+        function distribuirProbabilidad(categoria, p) {
+            const rest = 1 - p;
+            const probs = { EFICIENTE: 0, MODERADO: 0, INEFICIENTE: 0 };
+            probs[categoria] = p;
+            if (categoria === 'EFICIENTE') { probs.MODERADO = rest * 0.8; probs.INEFICIENTE = rest * 0.2; }
+            else if (categoria === 'MODERADO') { probs.EFICIENTE = rest * 0.5; probs.INEFICIENTE = rest * 0.5; }
+            else if (categoria === 'INEFICIENTE') { probs.EFICIENTE = rest * 0.2; probs.MODERADO = rest * 0.8; }
+            return probs;
+        }
+
         function mostrarResultadoAnalisis(data) {
-            const resultadoContainer = document.getElementById('resultadoContainer');
-            if (!resultadoContainer) {
+            if (!document.getElementById('resultadoContainer')) {
                 crearTabResultado();
             }
-            
-            const categoriaEmoji = {
-                'EFICIENTE': '🟢',
-                'MODERADO': '🟡',
-                'INEFICIENTE': '🔴'
-            };
-            
-            const emoji = categoriaEmoji[data.categoria] || '⚪';
-            
-            document.getElementById('resultadoCategoria').textContent = `${emoji} ${data.categoria}`;
-            document.getElementById('resultadoProbabilidad').textContent = `${(data.probabilidad * 100).toFixed(0)}%`;
-            document.getElementById('resultadoCosto').textContent = `$${data.costo_estimado_mensual.toFixed(2)}`;
-            document.getElementById('resultadoId').textContent = data.id_analisis;
-            document.getElementById('resultadoFecha').textContent = new Date(data.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-            
+
+            const solicitud = APP_STATE.ultimaSolicitud || {};
+            const color = CAT_COLOR[data.categoria] || '#1B1A17';
+            const probs = distribuirProbabilidad(data.categoria, data.probabilidad);
+
+            document.getElementById('resultadoCategoria').textContent = CAT_LABEL[data.categoria] || data.categoria;
+            document.getElementById('resultadoCategoria').style.color = color;
+            document.getElementById('resultadoProbabilidad').textContent = `${(data.probabilidad * 100).toFixed(0)} %`;
+            document.getElementById('resultadoCosto').textContent = `$ ${data.costo_estimado_mensual.toFixed(2)}`;
+
+            const formulaEl = document.getElementById('resultadoFormula');
+            if (solicitud.consumo_kwh) {
+                const tarifa = data.costo_estimado_mensual / solicitud.consumo_kwh;
+                formulaEl.textContent = `${solicitud.consumo_kwh} kWh × ${tarifa.toFixed(2).replace('.', ',')}`;
+            } else {
+                formulaEl.textContent = '';
+            }
+
+            const specEl = document.getElementById('resultadoSpec');
+            if (solicitud.consumo_kwh && solicitud.superficie_m2) {
+                const spec = solicitud.consumo_kwh / solicitud.superficie_m2;
+                specEl.textContent = `· ${spec.toFixed(2)} kWh/m²`;
+            } else {
+                specEl.textContent = '';
+            }
+
+            document.getElementById('resultadoId').textContent = data.id_analisis || '—';
+            document.getElementById('resultadoFecha').textContent = data.fecha
+                ? new Date(data.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
+                : '—';
+            document.getElementById('resultadoInmueble').textContent = solicitud.tipo_inmueble || '—';
+            document.getElementById('resultadoCiudad').textContent = (CIUDADES_COORDS[solicitud.region_pais] || {}).label || solicitud.region_pais || '—';
+
+            const clasesContainer = document.getElementById('resultadoClases');
+            clasesContainer.innerHTML = ['EFICIENTE', 'MODERADO', 'INEFICIENTE'].map(cat => {
+                const pct = (probs[cat] * 100).toFixed(0);
+                const activo = cat === data.categoria;
+                return `
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <span style="font-size: 14px; font-weight: 500; color: ${activo ? '#1B1A17' : 'rgba(27,26,23,.5)'};">${CAT_LABEL[cat]}</span>
+                            <span class="mono" style="font-size: 13px; color: ${activo ? '#1B1A17' : 'rgba(27,26,23,.5)'};">${pct} %</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(27,26,23,.09);">
+                            <div style="height: 6px; width: ${pct}%; background: ${activo ? CAT_COLOR[cat] : 'rgba(27,26,23,.28)'};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const recomendaciones = (data.recomendaciones || []).slice();
+            const alertaIdx = recomendaciones.findIndex(r => /°C/.test(r));
+            const alertaBox = document.getElementById('resultadoAlerta');
+            if (alertaIdx !== -1) {
+                document.getElementById('resultadoAlertaTexto').textContent = recomendaciones[alertaIdx];
+                alertaBox.style.display = 'flex';
+                recomendaciones.splice(alertaIdx, 1);
+            } else {
+                alertaBox.style.display = 'none';
+            }
+
             const recomendacionesContainer = document.getElementById('resultadoRecomendaciones');
             recomendacionesContainer.innerHTML = '';
-            
-            if (data.recomendaciones && data.recomendaciones.length > 0) {
-                data.recomendaciones.forEach((rec, index) => {
+            if (recomendaciones.length > 0) {
+                recomendaciones.forEach((rec, index) => {
                     const div = document.createElement('div');
                     div.className = 'recomendacion-item';
                     div.innerHTML = `
-                        <div class="recomendacion-icon">${index === 0 ? '💡' : index === 1 ? '🔌' : index === 2 ? '📊' : '🌡️'}</div>
+                        <div class="recomendacion-icon mono">${String(index + 1).padStart(2, '0')}</div>
                         <div class="recomendacion-content">
                             <p>${rec}</p>
                         </div>
@@ -1773,7 +1951,7 @@
                     recomendacionesContainer.appendChild(div);
                 });
             } else {
-                recomendacionesContainer.innerHTML = '<p>No hay recomendaciones disponibles.</p>';
+                recomendacionesContainer.innerHTML = '<p style="color: rgba(27,26,23,.55);">No hay recomendaciones disponibles.</p>';
             }
         }
 
@@ -1782,45 +1960,77 @@
             const tabBtn = document.createElement('button');
             tabBtn.className = 'tab-btn';
             tabBtn.onclick = () => changeTab('resultado');
-            tabBtn.innerHTML = '🎯 Resultado';
+            tabBtn.innerHTML = 'Resultado';
             tabsContainer.appendChild(tabBtn);
-            
+
             const tabContent = document.createElement('div');
             tabContent.id = 'resultadoTab';
             tabContent.className = 'tab-content';
             tabContent.innerHTML = `
-                <div class="card">
-                    <h3>🎯 Resultado del Análisis</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="number" id="resultadoCategoria">-</div>
-                            <div class="label">Categoría Energética</div>
+                <div class="card" id="resultadoContainer">
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 40px; border-bottom: 1px solid rgba(27,26,23,.16); padding-bottom: 28px; flex-wrap: wrap;">
+                        <div>
+                            <span class="mono" style="font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(27,26,23,.5);">Perfil energético</span>
+                            <h1 id="resultadoCategoria" style="font-size: 48px; line-height: 1; font-weight: 500; letter-spacing: -.03em; margin: 10px 0 0;">-</h1>
+                            <span class="mono" style="display: block; margin-top: 10px; font-size: 13px; color: rgba(27,26,23,.6);"><span id="resultadoProbabilidad">-</span> de confianza <span id="resultadoSpec"></span></span>
                         </div>
-                        <div class="stat-card">
-                            <div class="number" id="resultadoProbabilidad">-</div>
-                            <div class="label">Probabilidad</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="number" id="resultadoCosto">-</div>
-                            <div class="label">Costo Estimado Mensual</div>
+                        <div style="text-align: right;">
+                            <span class="mono" style="font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(27,26,23,.5);">Costo estimado mensual</span>
+                            <div id="resultadoCosto" class="mono" style="font-size: 40px; line-height: 1; font-weight: 500; letter-spacing: -.03em; margin-top: 10px;">-</div>
+                            <span id="resultadoFormula" class="mono" style="display: block; margin-top: 8px; font-size: 12px; color: rgba(27,26,23,.5);"></span>
                         </div>
                     </div>
-                    <div style="background: #f8f9fc; padding: 1rem; border-radius: 12px; margin: 1rem 0;">
-                        <p><strong>ID Análisis:</strong> <span id="resultadoId">-</span></p>
-                        <p><strong>Fecha:</strong> <span id="resultadoFecha">-</span></p>
+
+                    <div id="resultadoAlerta" style="display: none; gap: 16px; border-left: 3px solid #B4552F; background: rgba(180,85,47,.07); padding: 18px 20px; margin-top: 28px;">
+                        <span class="mono" style="font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #8E3F20; white-space: nowrap; padding-top: 2px;">Alerta clima</span>
+                        <p id="resultadoAlertaTexto" style="margin: 0; font-size: 15px; line-height: 1.6; color: #4A2415;"></p>
                     </div>
-                    <h4 style="margin-top: 1.5rem;">💡 Recomendaciones</h4>
-                    <div id="resultadoRecomendaciones"></div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1.25fr; gap: 56px; padding-top: 32px;">
+                        <div>
+                            <span class="mono" style="font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(27,26,23,.5);">Probabilidad por clase</span>
+                            <div id="resultadoClases" style="display: flex; flex-direction: column; gap: 14px; margin-top: 20px;"></div>
+                            <div style="margin-top: 32px; border-top: 1px solid rgba(27,26,23,.12); padding-top: 18px; display: flex; flex-direction: column; gap: 10px;">
+                                <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 12px;" class="mono"><span style="color: rgba(27,26,23,.5);">id_analisis</span><span id="resultadoId">-</span></div>
+                                <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 12px;" class="mono"><span style="color: rgba(27,26,23,.5);">fecha</span><span id="resultadoFecha">-</span></div>
+                                <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 12px;" class="mono"><span style="color: rgba(27,26,23,.5);">tipo_inmueble</span><span id="resultadoInmueble">-</span></div>
+                                <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 12px;" class="mono"><span style="color: rgba(27,26,23,.5);">ciudad</span><span id="resultadoCiudad">-</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="mono" style="font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(27,26,23,.5);">Recomendaciones</span>
+                            <div id="resultadoRecomendaciones" style="display: flex; flex-direction: column; margin-top: 12px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="step-navigation" style="align-items: center; margin-top: 44px; border-top: 1px solid rgba(27,26,23,.16); padding-top: 22px; flex-wrap: wrap;">
+                        <button type="button" class="btn-prev" onclick="editarDatosResultado()">Editar datos</button>
+                        <button type="button" class="btn-next" onclick="nuevoAnalisisResultado()">Nuevo análisis</button>
+                        <span class="mono" style="margin-left: auto; font-size: 11px; color: rgba(27,26,23,.42);">POST /analise-energetica · 200 OK</span>
+                    </div>
                 </div>
             `;
             document.getElementById('mainSection').appendChild(tabContent);
         }
 
+        function editarDatosResultado() {
+            changeTab('form');
+            if (APP_STATE.rol === 'usuario') {
+                APP_STATE.pasoActual = APP_STATE.totalPasos;
+                actualizarPasosUsuario();
+            }
+        }
+
+        function nuevoAnalisisResultado() {
+            cargarFormulario();
+            changeTab('form');
+        }
+
         function mostrarErrorAnalisis(result) {
-            let mensaje = '❌ Error al realizar el análisis';
-            
+            let mensaje = 'Error al realizar el análisis';
+
             if (result.status === 400) {
-                mensaje = '⚠️ Datos inválidos en el formulario';
+                mensaje = 'Datos inválidos en el formulario';
                 if (result.detalles) {
                     const detalles = Object.entries(result.detalles)
                         .map(([campo, error]) => `• ${campo}: ${error}`)
@@ -1828,14 +2038,14 @@
                     mensaje += `\n\n${detalles}`;
                 }
             } else if (result.status === 422) {
-                mensaje = `⚠️ ${result.error}`;
+                mensaje = `${result.error}`;
             } else if (result.status === 503) {
-                mensaje = '⚠️ El servicio de análisis no está disponible. Intenta más tarde.';
+                mensaje = 'El servicio de análisis no está disponible. Intenta más tarde.';
             } else if (result.status === 0) {
-                mensaje = '⚠️ No se pudo conectar con el servidor. Verifica tu conexión.';
+                mensaje = 'No se pudo conectar con el servidor. Verifica tu conexión.';
             }
-            
-            alert(mensaje);
+
+            notify(mensaje, 'error');
         }
 
         function recolectarDatosFormulario() {
@@ -1858,43 +2068,43 @@
                 latitud: parseFloat(getVal('latitud')),
                 longitud: parseFloat(getVal('longitud'))
             };
-            
+
             if (data.consumo_kwh <= 0) {
-                alert('⚠️ El consumo debe ser mayor a 0');
+                notify('El consumo debe ser mayor a 0', 'warning');
                 return null;
             }
             if (data.superficie_m2 <= 0) {
-                alert('⚠️ La superficie debe ser mayor a 0');
+                notify('La superficie debe ser mayor a 0', 'warning');
                 return null;
             }
             if (data.habitantes_ocupantes < 1) {
-                alert('⚠️ Debe haber al menos 1 habitante');
+                notify('Debe haber al menos 1 habitante', 'warning');
                 return null;
             }
             if (data.factor_potencia <= 0 || data.factor_potencia > 1) {
-                alert('⚠️ El factor de potencia debe estar entre 0.01 y 1.0');
+                notify('El factor de potencia debe estar entre 0.01 y 1.0', 'warning');
                 return null;
             }
             if (data.horas_alto_consumo < 0 || data.horas_alto_consumo > 24) {
-                alert('⚠️ Las horas de alto consumo deben estar entre 0 y 24');
+                notify('Las horas de alto consumo deben estar entre 0 y 24', 'warning');
                 return null;
             }
             if (data.latitud < -90 || data.latitud > 90) {
-                alert('⚠️ La latitud debe estar entre -90 y 90');
+                notify('La latitud debe estar entre -90 y 90', 'warning');
                 return null;
             }
             if (data.longitud < -180 || data.longitud > 180) {
-                alert('⚠️ La longitud debe estar entre -180 y 180');
+                notify('La longitud debe estar entre -180 y 180', 'warning');
                 return null;
             }
             if (data.tiene_paneles_solares && data.capacidad_solar_kwp <= 0) {
-                alert('⚠️ Si tiene paneles solares, la capacidad debe ser mayor a 0');
+                notify('Si tiene paneles solares, la capacidad debe ser mayor a 0', 'warning');
                 return null;
             }
             if (!data.tiene_paneles_solares && data.capacidad_solar_kwp !== 0) {
                 data.capacidad_solar_kwp = 0;
             }
-            
+
             return data;
         }
 
@@ -1913,7 +2123,7 @@
                 mostrarHistorial([]);
                 return;
             }
-            
+
             const result = await obtenerHistorialAPI();
             if (result.success && result.data) {
                 APP_STATE.historial = result.data;
@@ -1937,7 +2147,7 @@
             const tbody = document.getElementById('historialBody');
             tbody.innerHTML = '';
             if (historial.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999; padding: 2rem;">No hay registros aún. ¡Realiza tu primer análisis!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: rgba(27,26,23,.45); padding: 2rem;">No hay registros aún. ¡Realiza tu primer análisis!</td></tr>';
                 return;
             }
             historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -1945,16 +2155,16 @@
                 const fecha = new Date(item.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
                 let eficienciaClase = '', eficienciaTexto = '';
                 const consumoEspecifico = item.consumoEspecificoKwhM2 || 0;
-                if (consumoEspecifico < 2) { eficienciaClase = 'excelente'; eficienciaTexto = '🟢 Excelente'; }
-                else if (consumoEspecifico < 4) { eficienciaClase = 'bueno'; eficienciaTexto = '🟡 Bueno'; }
-                else if (consumoEspecifico < 6) { eficienciaClase = 'regular'; eficienciaTexto = '🟠 Regular'; }
-                else { eficienciaClase = 'malo'; eficienciaTexto = '🔴 Malo'; }
+                if (consumoEspecifico < 2) { eficienciaClase = 'excelente'; eficienciaTexto = 'Excelente'; }
+                else if (consumoEspecifico < 4) { eficienciaClase = 'bueno'; eficienciaTexto = 'Bueno'; }
+                else if (consumoEspecifico < 6) { eficienciaClase = 'regular'; eficienciaTexto = 'Regular'; }
+                else { eficienciaClase = 'malo'; eficienciaTexto = 'Malo'; }
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${fecha}</td>
-                    <td>${(item.consumoKwh || 0).toFixed(1)}</td>
-                    <td>${(item.superficieM2 || 0).toFixed(1)}</td>
-                    <td>${consumoEspecifico.toFixed(2)}</td>
+                    <td class="mono">${fecha}</td>
+                    <td class="mono">${(item.consumoKwh || 0).toFixed(1)}</td>
+                    <td class="mono">${(item.superficieM2 || 0).toFixed(1)}</td>
+                    <td class="mono">${consumoEspecifico.toFixed(2)}</td>
                     <td>${item.tipoInmueble || '-'}</td>
                     <td>${item.regionPais || '-'}</td>
                     <td><span class="eficiencia-badge ${eficienciaClase}">${eficienciaTexto}</span></td>
@@ -1988,8 +2198,8 @@
                 data: {
                     labels: fechas,
                     datasets: [
-                        { label: 'Consumo (kWh)', data: consumos, borderColor: '#4facfe', backgroundColor: 'rgba(79, 172, 254, 0.1)', tension: 0.3, fill: true },
-                        { label: 'Eficiencia (kWh/m²)', data: especificos, borderColor: '#f093fb', backgroundColor: 'rgba(240, 147, 251, 0.1)', tension: 0.3, fill: true, yAxisID: 'y1' }
+                        { label: 'Consumo (kWh)', data: consumos, borderColor: '#2F7A7E', backgroundColor: 'rgba(47, 122, 126, 0.1)', tension: 0.3, fill: true },
+                        { label: 'Eficiencia (kWh/m²)', data: especificos, borderColor: '#8A6B14', backgroundColor: 'rgba(138, 107, 20, 0.1)', tension: 0.3, fill: true, yAxisID: 'y1' }
                     ]
                 },
                 options: {
@@ -2027,10 +2237,10 @@
             const cambioConsumo = ((consumoUltimo - consumoPrimero) / consumoPrimero) * 100;
             const cambioEficiencia = ((especUltimo - especPrimero) / especPrimero) * 100;
             let mensaje = '', emoji = '';
-            if (cambioConsumo < -5 && cambioEficiencia < -5) { mensaje = '✅ Excelente mejora en eficiencia energética'; emoji = '📉'; }
-            else if (cambioConsumo < 0 && cambioEficiencia < 0) { mensaje = '📈 Buena tendencia. Sigue mejorando'; emoji = '📉'; }
-            else if (cambioConsumo > 5 || cambioEficiencia > 5) { mensaje = '⚠️ El consumo está aumentando. Revisa tus hábitos'; emoji = '📈'; }
-            else { mensaje = '➡️ Consumo estable. Busca oportunidades de mejora'; emoji = '➡️'; }
+            if (cambioConsumo < -5 && cambioEficiencia < -5) { mensaje = 'Excelente mejora en eficiencia energética'; emoji = '↓'; }
+            else if (cambioConsumo < 0 && cambioEficiencia < 0) { mensaje = 'Buena tendencia. Sigue mejorando'; emoji = '↓'; }
+            else if (cambioConsumo > 5 || cambioEficiencia > 5) { mensaje = 'El consumo está aumentando. Revisa tus hábitos'; emoji = '↑'; }
+            else { mensaje = 'Consumo estable. Busca oportunidades de mejora'; emoji = '→'; }
             document.getElementById('tendenciaInfo').innerHTML = `
                 <p><strong>${emoji} ${mensaje}</strong></p>
                 <p>Cambio en consumo: ${cambioConsumo > 0 ? '+' : ''}${cambioConsumo.toFixed(1)}%</p>
@@ -2043,13 +2253,13 @@
         function compararAntesDespues() {
             const fechaAntes = document.getElementById('fechaAntes').value;
             const fechaDespues = document.getElementById('fechaDespues').value;
-            if (!fechaAntes || !fechaDespues) { alert('Selecciona ambas fechas'); return; }
+            if (!fechaAntes || !fechaDespues) { notify('Selecciona ambas fechas', 'warning'); return; }
             const datos = APP_STATE.historial.filter(item => {
                 const fecha = new Date(item.fecha).toISOString().split('T')[0];
                 return fecha === fechaAntes || fecha === fechaDespues;
             });
             if (datos.length !== 2) {
-                document.getElementById('comparativaResultado').innerHTML = '⚠️ No se encontraron registros en las fechas seleccionadas';
+                document.getElementById('comparativaResultado').innerHTML = 'No se encontraron registros en las fechas seleccionadas';
                 return;
             }
             const antes = datos.find(d => new Date(d.fecha).toISOString().split('T')[0] === fechaAntes);
@@ -2060,10 +2270,9 @@
             const especDespues = despues.consumoEspecificoKwhM2 || 0;
             const mejoraConsumo = ((consumoDespues - consumoAntes) / consumoAntes) * 100;
             const mejoraEficiencia = ((especDespues - especAntes) / especAntes) * 100;
-            const emoji = mejoraConsumo < 0 && mejoraEficiencia < 0 ? '✅' : '⚠️';
             const mensaje = mejoraConsumo < 0 && mejoraEficiencia < 0 ? '¡Excelente mejora! El consumo ha disminuido' : 'El consumo ha aumentado. Revisa las recomendaciones';
             document.getElementById('comparativaResultado').innerHTML = `
-                <h4>${emoji} Comparativa</h4>
+                <h4>Comparativa</h4>
                 <p><strong>Antes</strong> (${new Date(antes.fecha).toLocaleDateString('es-ES')}): ${consumoAntes} kWh - ${especAntes.toFixed(2)} kWh/m²</p>
                 <p><strong>Después</strong> (${new Date(despues.fecha).toLocaleDateString('es-ES')}): ${consumoDespues} kWh - ${especDespues.toFixed(2)} kWh/m²</p>
                 <p><strong>${mensaje}</strong></p>
@@ -2085,14 +2294,14 @@
                 const eficiencia = ultimo.consumoEspecificoKwhM2 || 0;
                 let recomendacion = '', acciones = '';
                 if (eficiencia < 2) {
-                    recomendacion = '🟢 Excelente eficiencia. Mantén buenas prácticas como usar iluminación LED y equipos eficientes.';
-                    acciones = '✅ Sigue manteniendo estos buenos hábitos. Considera compartir tus prácticas con otros usuarios.';
+                    recomendacion = 'Excelente eficiencia. Mantén buenas prácticas como usar iluminación LED y equipos eficientes.';
+                    acciones = 'Sigue manteniendo estos buenos hábitos. Considera compartir tus prácticas con otros usuarios.';
                 } else if (eficiencia < 4) {
-                    recomendacion = '🟡 Eficiencia moderada. Considera actualizar equipos antiguos y mejorar aislamiento térmico.';
-                    acciones = '🔧 Revisa el estado de tus electrodomésticos. Los equipos con más de 10 años pueden ser ineficientes.';
+                    recomendacion = 'Eficiencia moderada. Considera actualizar equipos antiguos y mejorar aislamiento térmico.';
+                    acciones = 'Revisa el estado de tus electrodomésticos. Los equipos con más de 10 años pueden ser ineficientes.';
                 } else {
-                    recomendacion = '🔴 Alta ineficiencia. Se recomienda auditoría energética y reemplazo de equipos ineficientes.';
-                    acciones = '📋 Programa una auditoría energética profesional. El ahorro potencial puede ser significativo.';
+                    recomendacion = 'Alta ineficiencia. Se recomienda auditoría energética y reemplazo de equipos ineficientes.';
+                    acciones = 'Programa una auditoría energética profesional. El ahorro potencial puede ser significativo.';
                 }
                 const elemEfi = document.getElementById('eficienciaRecomendacion');
                 if (elemEfi) elemEfi.textContent = recomendacion;
@@ -2122,7 +2331,7 @@
                 if (promedio > maxConsumo) { maxConsumo = promedio; mesMax = mesesNombres[parseInt(mes)]; }
                 if (promedio < minConsumo) { minConsumo = promedio; mesMin = mesesNombres[parseInt(mes)]; }
             }
-            return `📊 Patrón estacional detectado: Mayor consumo en ${mesMax} (${maxConsumo.toFixed(1)} kWh) y menor en ${mesMin} (${minConsumo.toFixed(1)} kWh). ${mesMax.includes('Jun') || mesMax.includes('Jul') || mesMax.includes('Ago') ? 'Considera revisar uso de climatización en verano.' : 'Revisa hábitos en temporada de frío.'}`;
+            return `Patrón estacional detectado: Mayor consumo en ${mesMax} (${maxConsumo.toFixed(1)} kWh) y menor en ${mesMin} (${minConsumo.toFixed(1)} kWh). ${mesMax.includes('Jun') || mesMax.includes('Jul') || mesMax.includes('Ago') ? 'Considera revisar uso de climatización en verano.' : 'Revisa hábitos en temporada de frío.'}`;
         }
 
         // ============================================
@@ -2134,7 +2343,7 @@
                 document.getElementById('jsonOutput').textContent = JSON.stringify(APP_STATE.ultimoResultado, null, 2);
                 return;
             }
-            
+
             if (!datos) {
                 const historial = APP_STATE.historial;
                 if (historial.length === 0) {
@@ -2143,7 +2352,7 @@
                 }
                 datos = historial[historial.length - 1];
             }
-            
+
             const jsonOutput = {
                 categoria: 'N/A',
                 probabilidad: 0,
@@ -2155,8 +2364,8 @@
 
         function copiarJSON() {
             const jsonText = document.getElementById('jsonOutput').textContent;
-            if (!jsonText || jsonText === 'No hay datos para exportar.') { alert('No hay datos para copiar.'); return; }
-            navigator.clipboard.writeText(jsonText).then(() => alert('✅ JSON copiado al portapapeles'))
+            if (!jsonText || jsonText === 'No hay datos para exportar.') { notify('No hay datos para copiar.', 'warning'); return; }
+            navigator.clipboard.writeText(jsonText).then(() => notify('JSON copiado al portapapeles', 'success'))
                 .catch(() => {
                     const textarea = document.createElement('textarea');
                     textarea.value = jsonText;
@@ -2164,13 +2373,13 @@
                     textarea.select();
                     document.execCommand('copy');
                     document.body.removeChild(textarea);
-                    alert('✅ JSON copiado al portapapeles');
+                    notify('JSON copiado al portapapeles', 'success');
                 });
         }
 
         function descargarJSON() {
             const jsonText = document.getElementById('jsonOutput').textContent;
-            if (!jsonText || jsonText === 'No hay datos para exportar.') { alert('No hay datos para descargar.'); return; }
+            if (!jsonText || jsonText === 'No hay datos para exportar.') { notify('No hay datos para descargar.', 'warning'); return; }
             const blob = new Blob([jsonText], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -2190,7 +2399,7 @@
             if (historial.length === 0) {
                 document.getElementById('promedioConsumo').textContent = '0';
                 document.getElementById('mejorEficiencia').textContent = '0';
-                document.getElementById('tendenciaEstado').textContent = '➡️';
+                document.getElementById('tendenciaEstado').textContent = '→';
                 return;
             }
             const promedio = historial.reduce((a, b) => a + (b.consumoKwh || 0), 0) / historial.length;
@@ -2202,9 +2411,9 @@
                 const consumoPrimero = sorted[0].consumoKwh || 1;
                 const consumoUltimo = sorted[sorted.length-1].consumoKwh || 0;
                 const cambio = ((consumoUltimo - consumoPrimero) / consumoPrimero) * 100;
-                let emoji = '➡️';
-                if (cambio < -5) emoji = '📉';
-                else if (cambio > 5) emoji = '📈';
+                let emoji = '→';
+                if (cambio < -5) emoji = '↓';
+                else if (cambio > 5) emoji = '↑';
                 document.getElementById('tendenciaEstado').textContent = emoji;
             }
         }
@@ -2251,13 +2460,13 @@
             document.getElementById('username').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') document.getElementById('password').focus();
             });
-            
+
             if (cargarSesion()) {
                 APP_STATE.rol = 'usuario';
                 APP_STATE.esInvitado = false;
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('mainSection').style.display = 'block';
-                document.getElementById('userNameDisplay').textContent = `👤 ${APP_STATE.usuarioActual}`;
+                document.getElementById('userNameDisplay').textContent = APP_STATE.usuarioActual;
                 document.getElementById('userRoleDisplay').textContent = 'Rol: Usuario';
                 document.getElementById('userModeDisplay').textContent = 'Modo: Conectado';
                 document.getElementById('tabJson').style.display = 'none';
