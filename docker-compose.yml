@@ -5,6 +5,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-energia2024}
       MYSQL_DATABASE: ${DB_NAME:-energia_db}
+    command: --default-authentication-plugin=mysql_native_password
     ports:
       - "3307:3306"
     healthcheck:
@@ -48,6 +49,8 @@ services:
       DB_USER: ${DB_USER:-root}
       DB_PASSWORD: ${DB_PASSWORD:-energia2024}
       URL_MODELO: ${URL_MODELO:-http://ia-service:8000/analisis-energetico}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
     depends_on:
       mysql:
         condition: service_healthy

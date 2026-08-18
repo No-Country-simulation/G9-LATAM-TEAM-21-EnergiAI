@@ -44,7 +44,40 @@ public class AnalisisEnergetico {
     private String tipoInmueble;
 
     @Column(name = "horas_alto_consumo")
-    private Integer horasAltoConsumo;
+    private Double horasAltoConsumo;
+
+    @Column(name = "superficie_m2")
+    private Double superficieM2;
+
+    @Column(name = "habitantes_ocupantes")
+    private Integer habitantesOcupantes;
+
+    @Column(name = "factor_potencia")
+    private Double factorPotencia;
+
+    @Column(name = "porcentaje_iluminacion_led")
+    private Double porcentajeIluminacionLed;
+
+    @Column(name = "porcentaje_equipos_inteligentes")
+    private Double porcentajeEquiposInteligentes;
+
+    @Column(name = "antiguedad_promedio_ponderada")
+    private Double antiguedadPromedioPonderada;
+
+    @Column(name = "capacidad_solar_kwp")
+    private Double capacidadSolarKwp;
+
+    @Column(name = "tiene_paneles_solares")
+    private Boolean tienePanelesSolares;
+
+    @Column(name = "region_pais")
+    private String regionPais;
+
+    @Column(name = "latitud")
+    private Double latitud;
+
+    @Column(name = "longitud")
+    private Double longitud;
 
     @Column(name = "categoria")
     @Enumerated(EnumType.STRING)
