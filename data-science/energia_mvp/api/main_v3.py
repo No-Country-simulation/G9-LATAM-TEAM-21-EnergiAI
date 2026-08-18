@@ -5,9 +5,10 @@ frontend (rama qa/frontend-mvp-version-2.0).
 Ubicación esperada: data-science/energia_mvp/api/main_v3.py
 Carga el modelo desde ../models/ (carpeta hermana de api/)
 
-IMPORTANTE: el endpoint es /analise-energetica (con "e"), no
-/analisis-energetico — así está mapeado en AnalisisController.java y así
-lo llama el frontend.
+IMPORTANTE: el endpoint de este servicio es /analisis-energetico. No
+confundir con /analise-energetica, que es la ruta pública del backend
+Java (AnalisisController.java) consumida por el frontend — esta API solo
+la llama el backend internamente vía URL_MODELO.
 """
 import json
 import logging
@@ -82,7 +83,7 @@ def health():
 
 
 @app.post(
-    "/analise-energetica",
+    "/analisis-energetico",
     response_model=ConsumoEnergeticoResponse,
     responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
     tags=["Análisis"],

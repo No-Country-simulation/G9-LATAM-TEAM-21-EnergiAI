@@ -38,45 +38,45 @@ def test_health(client):
 
 
 def test_endpoint_correcto_es_analise_energetica(client):
-    resp = client.post("/analise-energetica", json=payload_base())
+    resp = client.post("/analisis-energetico", json=payload_base())
     assert resp.status_code == 200
 
 
 def test_caso_del_documento_costo_exacto(client):
-    resp = client.post("/analise-energetica", json=payload_base())
+    resp = client.post("/analisis-energetico", json=payload_base())
     assert resp.json()["costo_estimado_mensual"] == 315.00
 
 
 def test_las_4_ciudades_reales_del_frontend(client):
     for ciudad in ["CO-Bogota", "CO-Medellin", "MX-CDMX", "BR-Brasilia"]:
-        resp = client.post("/analise-energetica", json=payload_base(region_pais=ciudad))
+        resp = client.post("/analisis-energetico", json=payload_base(region_pais=ciudad))
         assert resp.status_code == 200, f"Falló con {ciudad}"
 
 
 def test_ciudad_formato_viejo_guion_bajo_falla(client):
-    resp = client.post("/analise-energetica", json=payload_base(region_pais="CO_Bogota"))
+    resp = client.post("/analisis-energetico", json=payload_base(region_pais="CO_Bogota"))
     assert resp.status_code == 422
 
 
 def test_validacion_cruzada_paneles_sin_capacidad(client):
-    resp = client.post("/analise-energetica", json=payload_base(
+    resp = client.post("/analisis-energetico", json=payload_base(
         tiene_paneles_solares=True, capacidad_solar_kwp=0
     ))
     assert resp.status_code == 422
 
 
 def test_validacion_tipo_inmueble_fuera_de_enum(client):
-    resp = client.post("/analise-energetica", json=payload_base(tipo_inmueble="Local Comercial"))
+    resp = client.post("/analisis-energetico", json=payload_base(tipo_inmueble="Local Comercial"))
     assert resp.status_code == 422
 
 
 def test_id_analisis_es_uuid_valido(client):
     import uuid
-    resp = client.post("/analise-energetica", json=payload_base())
+    resp = client.post("/analisis-energetico", json=payload_base())
     uuid.UUID(resp.json()["id_analisis"])
 
 
 def test_sin_api_key_no_rompe_el_analisis(client, monkeypatch):
     monkeypatch.delenv("OPENWEATHER_API_KEY", raising=False)
-    resp = client.post("/analise-energetica", json=payload_base())
+    resp = client.post("/analisis-energetico", json=payload_base())
     assert resp.status_code == 200

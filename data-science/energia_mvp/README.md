@@ -15,10 +15,11 @@ Recibe datos de consumo eléctrico de una vivienda o local, y:
 
 ## 🔌 Contrato de la API
 
-**Importante:** el endpoint es `/analise-energetica` (no `/analisis-energetico`)
-— coincide exactamente con `AnalisisController.java` del backend.
+**Importante:** el endpoint de este servicio es `/analisis-energetico`. No
+confundir con `/analise-energetica`, la ruta pública de `AnalisisController.java`
+en el backend Java — esta API solo la llama el backend internamente vía `URL_MODELO`.
 
-### `POST /analise-energetica`
+### `POST /analisis-energetico`
 
 ```json
 {
@@ -72,7 +73,7 @@ Healthcheck del servicio y del modelo cargado.
 ```
 energia_mvp/
 ├── api/
-│   ├── main_v3.py              # FastAPI: endpoint /analise-energetica
+│   ├── main_v3.py              # FastAPI: endpoint /analisis-energetico
 │   ├── schemas_v3.py           # validación Pydantic (15 campos)
 │   ├── recommendations_v3.py   # recomendaciones + cálculo de costo
 │   └── openweather_client.py   # clima real (OpenWeatherMap) con fallback
