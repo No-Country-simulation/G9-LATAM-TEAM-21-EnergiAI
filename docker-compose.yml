@@ -49,6 +49,8 @@ services:
       DB_USER: ${DB_USER:-root}
       DB_PASSWORD: ${DB_PASSWORD:-energia2024}
       URL_MODELO: ${URL_MODELO:-http://ia-service:8000/analisis-energetico}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
     depends_on:
       mysql:
         condition: service_healthy
