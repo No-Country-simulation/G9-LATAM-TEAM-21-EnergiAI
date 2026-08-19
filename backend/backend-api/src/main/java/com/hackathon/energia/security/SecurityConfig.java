@@ -31,7 +31,8 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/register",
                                 "/auth/refresh",
-                                "/auth/logout"
+                                "/auth/logout",
+                                "/analise-energetica"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
