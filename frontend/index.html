@@ -1335,8 +1335,8 @@
             const result = await loginAPI(username, password);
 
             if (result.success) {
-                const { access_token, refresh_token } = result.data;
-                guardarSesion(access_token, refresh_token, username);
+                const { accessToken, refreshToken } = result.data;
+                guardarSesion(accessToken, refreshToken, username);
                 APP_STATE.rol = APP_STATE.rol || 'usuario';
                 APP_STATE.esInvitado = false;
 
