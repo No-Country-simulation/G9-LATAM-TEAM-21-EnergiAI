@@ -26,8 +26,8 @@ def payload_base(**overrides):
         "porcentaje_iluminacion_led": 0.60, "porcentaje_equipos_inteligentes": 0.30,
         "antiguedad_promedio_ponderada": 6.5, "capacidad_solar_kwp": 0,
         "uso_horario_pico": True, "tiene_paneles_solares": False,
-        "tipo_inmueble": "Casa", "region_pais": "CO-Bogota",
-        "latitud": 4.7110, "longitud": -74.0721,
+        "tipo_inmueble": "Casa", "region_pais": "CO-Barranquilla",
+        "latitud": 10.9685, "longitud": -74.7813,
     }
     base.update(overrides)
     return base
@@ -48,13 +48,13 @@ def test_caso_del_documento_costo_exacto(client):
 
 
 def test_las_4_ciudades_reales_del_frontend(client):
-    for ciudad in ["CO-Bogota", "CO-Medellin", "MX-CDMX", "BR-Brasilia"]:
+    for ciudad in ["CO-Barranquilla", "CO-Medellin", "MX-CDMX", "BR-Brasilia"]:
         resp = client.post("/analisis-energetico", json=payload_base(region_pais=ciudad))
         assert resp.status_code == 200, f"Falló con {ciudad}"
 
 
 def test_ciudad_formato_viejo_guion_bajo_falla(client):
-    resp = client.post("/analisis-energetico", json=payload_base(region_pais="CO_Bogota"))
+    resp = client.post("/analisis-energetico", json=payload_base(region_pais="CO_Barranquilla"))
     assert resp.status_code == 422
 
 

@@ -1039,7 +1039,7 @@
         const API_BASE_URL = '/api';
 
         const CIUDADES_COORDS = {
-            'CO-Bogota': { label: 'Bogotá, Colombia', lat: 4.6482784, lon: -74.272621 },
+            'CO-Barranquilla': { label: 'Barranquilla, Colombia', lat: 10.9685, lon: -74.7813 },
             'CO-Medellin': { label: 'Medellín, Colombia', lat: 6.2442, lon: -75.5812 },
             'MX-CDMX': { label: 'Ciudad de México, México', lat: 19.3906594, lon: -99.3084256 },
             'BR-Brasilia': { label: 'Brasilia, Brasil', lat: -15.7723441, lon: -49.0461216 }
@@ -1449,7 +1449,7 @@
             const latInput = document.getElementById('latitud');
             const lonInput = document.getElementById('longitud');
             if (!select) return;
-            const ciudad = CIUDADES_COORDS[select.value] || CIUDADES_COORDS['CO-Bogota'];
+            const ciudad = CIUDADES_COORDS[select.value] || CIUDADES_COORDS['CO-Barranquilla'];
             if (latInput) latInput.value = ciudad.lat;
             if (lonInput) lonInput.value = ciudad.lon;
             if (hint) hint.textContent = `lat ${ciudad.lat.toFixed(4)} · lon ${ciudad.lon.toFixed(4)}`;
@@ -1480,7 +1480,7 @@
                             <div class="form-group">
                                 <label>Ciudad <span class="tooltip-trigger">?<span class="tooltip-content">La ciudad define la ubicación usada para consultar el clima actual.</span></span></label>
                                 <select id="region_pais" required onchange="actualizarCoordsUsuario()">
-                                    <option value="CO-Bogota">Bogotá, Colombia</option>
+                                    <option value="CO-Barranquilla">Barranquilla, Colombia</option>
                                     <option value="CO-Medellin">Medellín, Colombia</option>
                                     <option value="MX-CDMX">Ciudad de México, México</option>
                                     <option value="BR-Brasilia">Brasilia, Brasil</option>
@@ -1668,7 +1668,7 @@
                         </div>
                         <div class="form-group"><label>Región/País</label>
                             <select id="region_pais" required>
-                                <option value="CO-Bogota">CO - Bogotá</option>
+                                <option value="CO-Barranquilla">CO - Barranquilla</option>
                                 <option value="CO-Medellin">CO - Medellín</option>
                                 <option value="MX-CDMX">MX - Ciudad de México</option>
                                 <option value="BR-Brasilia">BR - Brasilia</option>

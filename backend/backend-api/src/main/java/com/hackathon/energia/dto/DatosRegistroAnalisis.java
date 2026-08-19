@@ -77,7 +77,7 @@ public record DatosRegistroAnalisis(
 
         @JsonProperty("region_pais")
         @NotBlank(message = "region_pais es obligatorio")
-        @EnumValid(values = {"CO-Bogota", "CO-Medellin", "MX-CDMX", "BR-Brasilia"}, message = "region_pais debe ser CO-Bogota, CO-Medellin, MX-CDMX o BR-Brasilia")
+        @EnumValid(values = {"CO-Barranquilla", "CO-Medellin", "MX-CDMX", "BR-Brasilia"}, message = "region_pais debe ser CO-Barranquilla, CO-Medellin, MX-CDMX o BR-Brasilia")
         String regionPais,
 
         @JsonProperty("latitud")

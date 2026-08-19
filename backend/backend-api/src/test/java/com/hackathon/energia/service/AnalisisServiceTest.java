@@ -59,9 +59,9 @@ class AnalisisServiceTest {
                 true,
                 false,
                 "Casa",
-                "CO-Bogota",
-                4.7110,
-                -74.0721
+                "CO-Barranquilla",
+                10.9685,
+                -74.7813
         );
     }
 
@@ -77,7 +77,7 @@ class AnalisisServiceTest {
                     List.of("Recomendación 1")
             );
             when(iaModelCliente.obtenerPrediccion(datosPrueba)).thenReturn(prediccion);
-            when(climateService.obtenerAlertaTemperatura(4.7110, -74.0721)).thenReturn(Optional.empty());
+            when(climateService.obtenerAlertaTemperatura(10.9685, -74.7813)).thenReturn(Optional.empty());
 
             var analisisGuardado = AnalisisEnergetico.builder()
                     .id(UUID.randomUUID())
@@ -128,7 +128,7 @@ class AnalisisServiceTest {
                     List.of("Recomendación 1")
             );
             when(iaModelCliente.obtenerPrediccion(datosPrueba)).thenReturn(prediccion);
-            when(climateService.obtenerAlertaTemperatura(4.7110, -74.0721)).thenReturn(Optional.empty());
+            when(climateService.obtenerAlertaTemperatura(10.9685, -74.7813)).thenReturn(Optional.empty());
 
             var analisisGuardado = AnalisisEnergetico.builder()
                     .id(UUID.randomUUID())
@@ -155,9 +155,9 @@ class AnalisisServiceTest {
             assertEquals(6.5, entity.getAntiguedadPromedioPonderada());
             assertEquals(0.0, entity.getCapacidadSolarKwp());
             assertEquals(false, entity.getTienePanelesSolares());
-            assertEquals("CO-Bogota", entity.getRegionPais());
-            assertEquals(4.7110, entity.getLatitud());
-            assertEquals(-74.0721, entity.getLongitud());
+            assertEquals("CO-Barranquilla", entity.getRegionPais());
+            assertEquals(10.9685, entity.getLatitud());
+            assertEquals(-74.7813, entity.getLongitud());
         }
     }
 
@@ -173,7 +173,7 @@ class AnalisisServiceTest {
                     List.of("Recomendación 1", "Recomendación 2")
             );
             when(iaModelCliente.obtenerPrediccion(datosPrueba)).thenReturn(prediccion);
-            when(climateService.obtenerAlertaTemperatura(4.7110, -74.0721))
+            when(climateService.obtenerAlertaTemperatura(10.9685, -74.7813))
                     .thenReturn(Optional.of("Alerta de temperatura alta"));
 
             var analisisGuardado = AnalisisEnergetico.builder()
@@ -196,7 +196,7 @@ class AnalisisServiceTest {
                     List.of("Recomendación 1")
             );
             when(iaModelCliente.obtenerPrediccion(datosPrueba)).thenReturn(prediccion);
-            when(climateService.obtenerAlertaTemperatura(4.7110, -74.0721)).thenReturn(Optional.empty());
+            when(climateService.obtenerAlertaTemperatura(10.9685, -74.7813)).thenReturn(Optional.empty());
 
             var analisisGuardado = AnalisisEnergetico.builder()
                     .id(UUID.randomUUID())
@@ -226,7 +226,7 @@ class AnalisisServiceTest {
                     List.of("Recomendación 1")
             );
             when(iaModelCliente.obtenerPrediccion(datosPrueba)).thenReturn(prediccion);
-            when(climateService.obtenerAlertaTemperatura(4.7110, -74.0721)).thenReturn(Optional.empty());
+            when(climateService.obtenerAlertaTemperatura(10.9685, -74.7813)).thenReturn(Optional.empty());
 
             var analisisGuardado = AnalisisEnergetico.builder()
                     .id(expectedId)

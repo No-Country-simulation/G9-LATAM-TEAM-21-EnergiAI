@@ -11,8 +11,16 @@ class TipoInmueble(str, Enum):
 
 class RegionPais(str, Enum):
     """Valores EXACTOS del <select id="region_pais"> en frontend/index.html
-    (rama qa/frontend-mvp-version-2.0) — formato con guion, 4 ciudades."""
-    co_bogota = "CO-Bogota"
+    (rama qa/frontend-mvp-version-2.0) — formato con guion, 4 ciudades.
+
+    CO-Barranquilla reemplazo a CO-Bogota (la que se uso al entrenar el
+    modelo, ver scripts/train_v3.py) para poder demostrar la alerta
+    climatica preventiva con una ciudad caribena que supera los 32°C de
+    forma confiable durante todo el año, sin depender de la estacion.
+    El OneHotEncoder usa handle_unknown="ignore", asi que la prediccion
+    sigue funcionando (sin senal especifica de region para esta ciudad
+    nueva)."""
+    co_barranquilla = "CO-Barranquilla"
     co_medellin = "CO-Medellin"
     mx_cdmx = "MX-CDMX"
     br_brasilia = "BR-Brasilia"
@@ -52,8 +60,8 @@ class ConsumoEnergeticoRequest(BaseModel):
                 "porcentaje_iluminacion_led": 0.60, "porcentaje_equipos_inteligentes": 0.30,
                 "antiguedad_promedio_ponderada": 6.5, "capacidad_solar_kwp": 0,
                 "uso_horario_pico": True, "tiene_paneles_solares": False,
-                "tipo_inmueble": "Casa", "region_pais": "CO-Bogota",
-                "latitud": 4.7110, "longitud": -74.0721,
+                "tipo_inmueble": "Casa", "region_pais": "CO-Barranquilla",
+                "latitud": 10.9685, "longitud": -74.7813,
             }
         }
     )

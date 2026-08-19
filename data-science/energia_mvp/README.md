@@ -36,15 +36,20 @@ en el backend Java — esta API solo la llama el backend internamente vía `URL_
   "uso_horario_pico": true,
   "tiene_paneles_solares": false,
   "tipo_inmueble": "Casa",
-  "region_pais": "CO-Bogota",
-  "latitud": 4.7110,
-  "longitud": -74.0721
+  "region_pais": "CO-Barranquilla",
+  "latitud": 10.9685,
+  "longitud": -74.7813
 }
 ```
 
 `tipo_inmueble` acepta: `Casa`, `Apartamento`, `Local`.
-`region_pais` acepta: `CO-Bogota`, `CO-Medellin`, `MX-CDMX`, `BR-Brasilia`
-(valores exactos usados por el `<select>` del frontend).
+`region_pais` acepta: `CO-Barranquilla`, `CO-Medellin`, `MX-CDMX`, `BR-Brasilia`
+(valores exactos usados por el `<select>` del frontend). CO-Barranquilla no
+formó parte de las ciudades con las que se entrenó el modelo (ver
+`scripts/train_v3.py`); se agregó para tener una ciudad con calor
+confiable todo el año en la alerta climática preventiva. El
+`OneHotEncoder` usa `handle_unknown="ignore"`, así que la predicción
+sigue funcionando (sin señal específica de región para esta ciudad).
 
 **Respuesta:**
 ```json

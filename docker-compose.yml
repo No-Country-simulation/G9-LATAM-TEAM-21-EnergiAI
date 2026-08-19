@@ -51,6 +51,7 @@ services:
       URL_MODELO: ${URL_MODELO:-http://ia-service:8000/analisis-energetico}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER}
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
     depends_on:
       mysql:
         condition: service_healthy

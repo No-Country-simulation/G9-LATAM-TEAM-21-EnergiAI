@@ -64,7 +64,7 @@ class AnalisisControllerIntegrationTest {
                 true,
                 false,
                 "Casa",
-                "CO-Bogota",
+                "CO-Barranquilla",
                 4.7110,
                 -74.0721
         );
@@ -160,7 +160,7 @@ class AnalisisControllerIntegrationTest {
                     true,
                     false,
                     "Casa",
-                    "CO-Bogota",
+                    "CO-Barranquilla",
                     4.7110,
                     -74.0721
             );
@@ -191,7 +191,7 @@ class AnalisisControllerIntegrationTest {
                     true,
                     false,
                     "Casa",
-                    "CO-Bogota",
+                    "CO-Barranquilla",
                     4.7110,
                     -74.0721
             );
@@ -226,7 +226,7 @@ class AnalisisControllerIntegrationTest {
                     true,
                     false,
                     "Oficina",
-                    "CO-Bogota",
+                    "CO-Barranquilla",
                     4.7110,
                     -74.0721
             );
