@@ -887,7 +887,7 @@
             </div>
 
             <div class="tabs" id="tabsContainer">
-                <button class="tab-btn active" onclick="changeTab('form')">
+                <button class="tab-btn active" onclick="abrirFormulario()">
                     Formulario
                     <span class="tooltip-trigger">
                         ?
@@ -1038,6 +1038,21 @@
 
         const API_BASE_URL = '/api';
 
+        // Backend manda fechas "YYYY-MM-DD" (LocalDate, sin hora/zona). new Date(str)
+        // las interpreta como medianoche UTC, y en timezones negativos (ej. Colombia
+        // UTC-5) eso retrocede un dia al formatear en hora local. Esta funcion arma
+        // la fecha en el timezone local del navegador, sin ese corrimiento.
+        function capitalizar(texto) {
+            if (!texto) return texto;
+            return String(texto).charAt(0).toUpperCase() + String(texto).slice(1);
+        }
+
+        function parseFechaLocal(fechaStr) {
+            if (!fechaStr) return null;
+            const [y, m, d] = String(fechaStr).split('-').map(Number);
+            return new Date(y, m - 1, d);
+        }
+
         const CIUDADES_COORDS = {
             'CO-Barranquilla': { label: 'Barranquilla, Colombia', lat: 10.9685, lon: -74.7813 },
             'CO-Medellin': { label: 'Medellín, Colombia', lat: 6.2442, lon: -75.5812 },
@@ -1057,6 +1072,7 @@
             usuarioAEliminar: null,
             ultimoResultado: null,
             ultimaSolicitud: null,
+            formularioEnviado: false,
             esInvitado: false
         };
 
@@ -1228,7 +1244,7 @@
 
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('mainSection').style.display = 'block';
-            document.getElementById('userNameDisplay').textContent = `${APP_STATE.usuarioActual} (Invitado)`;
+            document.getElementById('userNameDisplay').textContent = `${capitalizar(APP_STATE.usuarioActual)} (Invitado)`;
 
             const rolNombre = APP_STATE.rol === 'usuario' ? 'Usuario' : 'Técnico';
             document.getElementById('userRoleDisplay').textContent = `Rol: ${rolNombre}`;
@@ -1342,7 +1358,7 @@
 
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('mainSection').style.display = 'block';
-                document.getElementById('userNameDisplay').textContent = username;
+                document.getElementById('userNameDisplay').textContent = capitalizar(username);
 
                 const rolNombre = APP_STATE.rol === 'usuario' ? 'Usuario' : 'Técnico';
                 const modoNombre = APP_STATE.rol === 'usuario' ? 'Enseñanza' : 'Profesional';
@@ -1385,6 +1401,7 @@
             cerrarSesion();
             APP_STATE.historial = [];
             APP_STATE.ultimoResultado = null;
+            APP_STATE.formularioEnviado = false;
             document.getElementById('loginSection').style.display = 'block';
             document.getElementById('mainSection').style.display = 'none';
             document.getElementById('username').value = '';
@@ -1565,7 +1582,7 @@
                             </div>
                             <div class="toggle-row">
                                 <div>
-                                    <div class="toggle-label">Paneles solares</div>
+                                    <div class="toggle-label">Paneles solares <span class="tooltip-trigger">?<span class="tooltip-content">Indica si tu propiedad cuenta con paneles solares instalados. Si activas esta opción, deberás indicar la capacidad instalada en kWp.</span></span></div>
                                     <div class="toggle-desc">Si activas, indica la capacidad instalada</div>
                                 </div>
                                 <button type="button" class="toggle-switch" id="panelToggle" onclick="togglePaneles()" style="background: #F6F2E9;">
@@ -1846,6 +1863,7 @@
 
             if (result.success) {
                 APP_STATE.ultimoResultado = result.data;
+                APP_STATE.formularioEnviado = true;
 
                 if (!APP_STATE.esInvitado && APP_STATE.token) {
                     await cargarHistorialDesdeAPI();
@@ -1903,7 +1921,7 @@
 
             document.getElementById('resultadoId').textContent = data.id_analisis || '—';
             document.getElementById('resultadoFecha').textContent = data.fecha
-                ? new Date(data.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
+                ? parseFechaLocal(data.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
                 : '—';
             document.getElementById('resultadoInmueble').textContent = solicitud.tipo_inmueble || '—';
             document.getElementById('resultadoCiudad').textContent = (CIUDADES_COORDS[solicitud.region_pais] || {}).label || solicitud.region_pais || '—';
@@ -2023,6 +2041,15 @@
 
         function nuevoAnalisisResultado() {
             cargarFormulario();
+            APP_STATE.formularioEnviado = false;
+            changeTab('form');
+        }
+
+        function abrirFormulario() {
+            if (APP_STATE.formularioEnviado) {
+                cargarFormulario();
+                APP_STATE.formularioEnviado = false;
+            }
             changeTab('form');
         }
 
@@ -2132,6 +2159,7 @@
                 APP_STATE.historial = [];
                 mostrarHistorial([]);
             }
+            actualizarStats();
         }
 
         function cargarHistorialUsuario(usuario) {
@@ -2150,9 +2178,9 @@
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: rgba(27,26,23,.45); padding: 2rem;">No hay registros aún. ¡Realiza tu primer análisis!</td></tr>';
                 return;
             }
-            historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            historial.sort((a, b) => parseFechaLocal(b.fecha) - parseFechaLocal(a.fecha));
             historial.forEach(item => {
-                const fecha = new Date(item.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
+                const fecha = parseFechaLocal(item.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
                 let eficienciaClase = '', eficienciaTexto = '';
                 const consumoEspecifico = item.consumoEspecificoKwhM2 || 0;
                 if (consumoEspecifico < 2) { eficienciaClase = 'excelente'; eficienciaTexto = 'Excelente'; }
@@ -2182,8 +2210,8 @@
                 document.getElementById('tendenciaInfo').innerHTML = 'Se necesitan al menos 2 registros para mostrar tendencias';
                 return;
             }
-            const datos = [...APP_STATE.historial].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-            const fechas = datos.map(d => new Date(d.fecha).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
+            const datos = [...APP_STATE.historial].sort((a, b) => parseFechaLocal(a.fecha) - parseFechaLocal(b.fecha));
+            const fechas = datos.map(d => parseFechaLocal(d.fecha).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
             const consumos = datos.map(d => d.consumoKwh || 0);
             const especificos = datos.map(d => d.consumoEspecificoKwhM2 || 0);
             crearGraficoTendencia(fechas, consumos, especificos);
@@ -2246,7 +2274,7 @@
                 <p>Cambio en consumo: ${cambioConsumo > 0 ? '+' : ''}${cambioConsumo.toFixed(1)}%</p>
                 <p>Cambio en eficiencia: ${cambioEficiencia > 0 ? '+' : ''}${cambioEficiencia.toFixed(1)}%</p>
                 <p>Total registros: ${datos.length}</p>
-                <p>Periodo: ${new Date(datos[0].fecha).toLocaleDateString()} - ${new Date(datos[datos.length-1].fecha).toLocaleDateString()}</p>
+                <p>Periodo: ${parseFechaLocal(datos[0].fecha).toLocaleDateString()} - ${parseFechaLocal(datos[datos.length-1].fecha).toLocaleDateString()}</p>
             `;
         }
 
@@ -2255,15 +2283,14 @@
             const fechaDespues = document.getElementById('fechaDespues').value;
             if (!fechaAntes || !fechaDespues) { notify('Selecciona ambas fechas', 'warning'); return; }
             const datos = APP_STATE.historial.filter(item => {
-                const fecha = new Date(item.fecha).toISOString().split('T')[0];
-                return fecha === fechaAntes || fecha === fechaDespues;
+                return item.fecha === fechaAntes || item.fecha === fechaDespues;
             });
             if (datos.length !== 2) {
                 document.getElementById('comparativaResultado').innerHTML = 'No se encontraron registros en las fechas seleccionadas';
                 return;
             }
-            const antes = datos.find(d => new Date(d.fecha).toISOString().split('T')[0] === fechaAntes);
-            const despues = datos.find(d => new Date(d.fecha).toISOString().split('T')[0] === fechaDespues);
+            const antes = datos.find(d => d.fecha === fechaAntes);
+            const despues = datos.find(d => d.fecha === fechaDespues);
             const consumoAntes = antes.consumoKwh || 1;
             const consumoDespues = despues.consumoKwh || 0;
             const especAntes = antes.consumoEspecificoKwhM2 || 1;
@@ -2273,8 +2300,8 @@
             const mensaje = mejoraConsumo < 0 && mejoraEficiencia < 0 ? '¡Excelente mejora! El consumo ha disminuido' : 'El consumo ha aumentado. Revisa las recomendaciones';
             document.getElementById('comparativaResultado').innerHTML = `
                 <h4>Comparativa</h4>
-                <p><strong>Antes</strong> (${new Date(antes.fecha).toLocaleDateString('es-ES')}): ${consumoAntes} kWh - ${especAntes.toFixed(2)} kWh/m²</p>
-                <p><strong>Después</strong> (${new Date(despues.fecha).toLocaleDateString('es-ES')}): ${consumoDespues} kWh - ${especDespues.toFixed(2)} kWh/m²</p>
+                <p><strong>Antes</strong> (${parseFechaLocal(antes.fecha).toLocaleDateString('es-ES')}): ${consumoAntes} kWh - ${especAntes.toFixed(2)} kWh/m²</p>
+                <p><strong>Después</strong> (${parseFechaLocal(despues.fecha).toLocaleDateString('es-ES')}): ${consumoDespues} kWh - ${especDespues.toFixed(2)} kWh/m²</p>
                 <p><strong>${mensaje}</strong></p>
                 <p>Variación consumo: ${mejoraConsumo > 0 ? '+' : ''}${mejoraConsumo.toFixed(1)}%</p>
                 <p>Variación eficiencia: ${mejoraEficiencia > 0 ? '+' : ''}${mejoraEficiencia.toFixed(1)}%</p>
@@ -2317,7 +2344,7 @@
             if (historial.length < 3) return 'Se necesitan más datos para analizar patrones estacionales. Continúa registrando consumos.';
             const meses = {};
             historial.forEach(item => {
-                const mes = new Date(item.fecha).getMonth();
+                const mes = parseFechaLocal(item.fecha).getMonth();
                 if (!meses[mes]) meses[mes] = [];
                 meses[mes].push(item.consumoKwh || 0);
             });
@@ -2407,7 +2434,7 @@
             const mejorEficiencia = Math.min(...historial.map(i => i.consumoEspecificoKwhM2 || 0));
             document.getElementById('mejorEficiencia').textContent = mejorEficiencia.toFixed(2);
             if (historial.length >= 2) {
-                const sorted = [...historial].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+                const sorted = [...historial].sort((a, b) => parseFechaLocal(a.fecha) - parseFechaLocal(b.fecha));
                 const consumoPrimero = sorted[0].consumoKwh || 1;
                 const consumoUltimo = sorted[sorted.length-1].consumoKwh || 0;
                 const cambio = ((consumoUltimo - consumoPrimero) / consumoPrimero) * 100;
@@ -2466,7 +2493,7 @@
                 APP_STATE.esInvitado = false;
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('mainSection').style.display = 'block';
-                document.getElementById('userNameDisplay').textContent = APP_STATE.usuarioActual;
+                document.getElementById('userNameDisplay').textContent = capitalizar(APP_STATE.usuarioActual);
                 document.getElementById('userRoleDisplay').textContent = 'Rol: Usuario';
                 document.getElementById('userModeDisplay').textContent = 'Modo: Conectado';
                 document.getElementById('tabJson').style.display = 'none';
