@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0E2E2B"/>
+      <stop offset="0.55" stop-color="#14463F"/>
+      <stop offset="1" stop-color="#2F7A7E"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE45E"/>
+      <stop offset="1" stop-color="#F5B301"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F5B301" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#F5B301" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1280" height="420" fill="url(#bg)"/>
+
+  <g stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1">
+    <line x1="0" y1="70" x2="1280" y2="70"/>
+    <line x1="0" y1="140" x2="1280" y2="140"/>
+    <line x1="0" y1="210" x2="1280" y2="210"/>
+    <line x1="0" y1="280" x2="1280" y2="280"/>
+    <line x1="0" y1="350" x2="1280" y2="350"/>
+  </g>
+
+  <polyline points="40,330 160,320 280,335 400,300 520,310 640,270 760,285 880,240 1000,255 1120,210 1240,220"
+            fill="none" stroke="#7FD1C8" stroke-opacity="0.35" stroke-width="3"/>
+
+  <circle cx="1010" cy="210" r="180" fill="url(#glow)"/>
+  <g transform="translate(940,90) scale(1.15)">
+    <path d="M70 0 L10 130 L55 130 L40 230 L120 90 L70 90 Z" fill="url(#bolt)"/>
+  </g>
+
+  <text x="80" y="170" font-family="'Space Grotesk', 'Segoe UI', Arial, sans-serif" font-size="88" font-weight="700" fill="#FFFFFF">
+    Energi<tspan fill="#FFE45E">AI</tspan>
+  </text>
+  <text x="84" y="225" font-family="'Space Grotesk', 'Segoe UI', Arial, sans-serif" font-size="30" fill="#CFE8E4">
+    Inteligencia para el consumo energético
+  </text>
+
+  <g font-family="'IBM Plex Mono', 'Courier New', monospace" font-size="18">
+    <rect x="84" y="260" width="220" height="40" rx="20" fill="#FFFFFF" fill-opacity="0.10"/>
+    <text x="104" y="286" fill="#9FE8B0">Eficiente</text>
+    <rect x="324" y="260" width="220" height="40" rx="20" fill="#FFFFFF" fill-opacity="0.10"/>
+    <text x="344" y="286" fill="#FFE45E">Moderado</text>
+    <rect x="564" y="260" width="220" height="40" rx="20" fill="#FFFFFF" fill-opacity="0.10"/>
+    <text x="584" y="286" fill="#FF9E9E">Ineficiente</text>
+  </g>
+
+  <text x="84" y="372" font-family="'IBM Plex Mono', 'Courier New', monospace" font-size="20" fill="#8FB8B2">
+    Hackathon ONE G9 · LATAM · Equipo 21
+  </text>
+</svg>
